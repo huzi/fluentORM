@@ -1,7 +1,7 @@
 package at.lemme.fluent.orm.select;
 
 import at.lemme.fluent.orm.BaseDbTest;
-import at.lemme.fluent.orm.Person;
+import at.lemme.fluent.orm.model.Person;
 import org.junit.Test;
 
 import java.util.List;

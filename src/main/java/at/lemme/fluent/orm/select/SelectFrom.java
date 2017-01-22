@@ -1,43 +1,36 @@
-package at.lemme.fluent.orm;
+package at.lemme.fluent.orm.select;
 
 import at.lemme.fluent.orm.condition.Condition;
 
 import java.lang.reflect.Field;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by thomas on 11.11.16.
  */
-public class Select<T> {
+public class SelectFrom<T> {
 
-    private final Connection connection;
-
-    private String tableName;
-    private Class<T> entityClass;
+    private final Select select;
+    private final Class<T> entityClass;
     private String alias;
     private Condition condition;
 
-    public Select(final Connection connection) {
-        this.connection = connection;
-    }
-
-    public Select from(Class<T> entityClass) {
+    public SelectFrom(final Select select, Class<T> entityClass) {
         this.entityClass = entityClass;
-        this.tableName = entityClass.getSimpleName();
-        return this;
+        this.select = select;
     }
 
-    public Select alias(String alias) {
+    public SelectFrom<T> alias(String alias) {
         this.alias = alias;
         return this;
     }
 
-    public Select where(Condition condition) {
+    public SelectFrom<T> where(Condition condition) {
         this.condition = condition;
         return this;
     }
@@ -56,7 +49,7 @@ public class Select<T> {
             query.append(alias).append(".");
         }
         query.append("* FROM ");
-        query.append(tableName);
+        query.append(select.tableName);
 
         if (alias != null && !alias.isEmpty()) {
             query.append(" ").append(alias);
@@ -72,7 +65,7 @@ public class Select<T> {
     }
 
     private List<T> resultSetToList(ResultSet rs) {
-        Field[] fields = entityClass.getDeclaredFields();
+        Field[] fields = select.entityClass.getDeclaredFields();
         List<T> resultList = new ArrayList<>();
 
         try {
@@ -86,19 +79,23 @@ public class Select<T> {
     }
 
     private void createEntityInstanceFromResultSetRow(ResultSet rs, Field[] fields, List<T> resultList) throws InstantiationException, IllegalAccessException, SQLException {
-        T person = entityClass.newInstance();
+        T person = (T) select.entityClass.newInstance();
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             field.setAccessible(true);
             String fieldContent = rs.getString(field.getName());
-            field.set(person, fieldContent);
+            if (field.getType().equals(String.class)) {
+                field.set(person, fieldContent);
+            } else if (field.getType().equals(LocalDate.class)) {
+                field.set(person, LocalDate.parse(fieldContent));
+            }
         }
         resultList.add(person);
     }
 
     private ResultSet executeQuery(String query) {
         try {
-            PreparedStatement stmt = connection.prepareStatement(query);
+            PreparedStatement stmt = select.connection.prepareStatement(query);
             return stmt.executeQuery();
 
         } catch (Exception e) {

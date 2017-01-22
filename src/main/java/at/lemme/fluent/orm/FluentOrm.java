@@ -1,5 +1,8 @@
 package at.lemme.fluent.orm;
 
+import at.lemme.fluent.orm.save.Save;
+import at.lemme.fluent.orm.select.Select;
+
 import java.sql.Connection;
 
 /**

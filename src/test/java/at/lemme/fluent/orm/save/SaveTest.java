@@ -1,7 +1,8 @@
 package at.lemme.fluent.orm.save;
 
 import at.lemme.fluent.orm.FluentOrm;
-import at.lemme.fluent.orm.Person;
+import at.lemme.fluent.orm.condition.EqualCondition;
+import at.lemme.fluent.orm.model.Person;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,10 +12,12 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.time.Month.DECEMBER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -46,7 +49,7 @@ public class SaveTest {
     public void shouldSaveSimpleObject() throws Exception {
         // GIVEN
         connection.prepareStatement("TRUNCATE TABLE Person").execute();
-        Person person = new Person(null, "Anja", "Lang");
+        Person person = new Person(null, "Anja", "Lang", LocalDate.now());
 
         // WHEN
         fluentOrm.save().byObject(person).execute();
@@ -63,8 +66,8 @@ public class SaveTest {
     public void shouldSaveMultipleSimpleObjects() throws Exception {
         // GIVEN
         connection.prepareStatement("TRUNCATE TABLE Person").execute();
-        Person person1 = new Person(null, "Anja", "Lang");
-        Person person2 = new Person(null, "Susi", "Lang");
+        Person person1 = new Person(null, "Anja", "Lang", LocalDate.now());
+        Person person2 = new Person(null, "Susi", "Lang", LocalDate.now().minusYears(30));
 
         // WHEN
         fluentOrm.save().byObject(person1).execute();
@@ -77,5 +80,21 @@ public class SaveTest {
         assertThat(personList).hasSize(2);
     }
 
+    @Test
+    public void testShouldSaveLocalDate() {
+        // GIVEN
+        Person p = new Person(null, "Thomas", "Lemmé", LocalDate.of(1984, DECEMBER, 12));
+
+        // WHEN
+        p = fluentOrm.save().byObject(p).execute();
+
+        //THEN
+        Person saved = fluentOrm.select()
+                .from(Person.class).where(EqualCondition.create("id", p.getId()))
+                .list().get(0);
+
+        assertThat(saved.getBirthDate()).isEqualTo(LocalDate.of(1984, DECEMBER, 12));
+
+    }
 
 }

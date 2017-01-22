@@ -1,12 +1,13 @@
 package at.lemme.fluent.orm.select;
 
 import at.lemme.fluent.orm.BaseDbTest;
-import at.lemme.fluent.orm.Person;
+import at.lemme.fluent.orm.model.Person;
 import at.lemme.fluent.orm.condition.AndCondition;
 import at.lemme.fluent.orm.condition.EqualCondition;
 import at.lemme.fluent.orm.condition.OrCondition;
 import org.junit.Test;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,8 +23,8 @@ public class SelectWhereTest extends BaseDbTest {
     public void shouldFilterList() {
         // GIVEN
         final String firstName = "Archibald";
-        fluentOrm.save().byObject(new Person(null, "Archibald", "Meier"));
-        fluentOrm.save().byObject(new Person(null, "Archibald", "Huber"));
+        fluentOrm.save().byObject(new Person(null, "Archibald", "Meier", LocalDate.now()));
+        fluentOrm.save().byObject(new Person(null, "Archibald", "Huber", LocalDate.now()));
 
         // WHEN
         List<Person> list = fluentOrm.select()
@@ -40,8 +41,8 @@ public class SelectWhereTest extends BaseDbTest {
         // GIVEN
         final String firstName = "Thomas";
         final String lastName = "Lemmé";
-        fluentOrm.save().byObject(new Person(null, "Archibald", "Meier"));
-        fluentOrm.save().byObject(new Person(null, "Archibald", "Huber"));
+        fluentOrm.save().byObject(new Person(null, "Archibald", "Meier", LocalDate.now()));
+        fluentOrm.save().byObject(new Person(null, "Archibald", "Huber", LocalDate.now()));
 
         // WHEN
         List<Person> list = fluentOrm.select()
@@ -56,6 +57,7 @@ public class SelectWhereTest extends BaseDbTest {
         assertThat(list.get(0).getLastName()).isEqualTo(lastName);
         assertThat(list.stream().allMatch(p -> p.getFirstName().equals(firstName))).isTrue();
         assertThat(list.stream().allMatch(p -> p.getLastName().equals(lastName))).isTrue();
+        System.out.println(list.get(0));
     }
 
     @Test
@@ -63,7 +65,7 @@ public class SelectWhereTest extends BaseDbTest {
         // GIVEN
         final String firstName = "Thomas";
         final String lastName = "Nonexisting";
-        fluentOrm.save().byObject(new Person(null, "Archibald", "Meier"));
+        fluentOrm.save().byObject(new Person(null, "Archibald", "Meier", LocalDate.now()));
 
         // WHEN
         List<Person> list = fluentOrm.select()

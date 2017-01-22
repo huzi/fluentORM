@@ -1,11 +1,11 @@
-package at.lemme.fluent.orm;
+package at.lemme.fluent.orm.save;
 
 import java.sql.Connection;
 
 /**
  * Created by thomas on 11.11.16.
  */
-public class Save<T> {
+public class Save {
 
     final Connection connection;
 
@@ -16,9 +16,9 @@ public class Save<T> {
         this.connection = connection;
     }
 
-    public SaveByObject byObject(T object) {
+    public <T> SaveByObject<T> byObject(T object) {
         this.entityClass = object.getClass();
         this.tableName = entityClass.getSimpleName();
-        return new SaveByObject(this, object);
+        return new SaveByObject<T>(this, object);
     }
 }

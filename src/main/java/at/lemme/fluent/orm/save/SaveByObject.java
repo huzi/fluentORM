@@ -1,4 +1,6 @@
-package at.lemme.fluent.orm;
+package at.lemme.fluent.orm.save;
+
+import at.lemme.fluent.orm.metadata.EntityAttribute;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
@@ -27,7 +29,16 @@ public class SaveByObject<T> {
         List<EntityAttribute> attributes = getEntityAttributes();
         String fieldString = attributes.stream().map(a -> a.getName()).collect(Collectors.joining(", "));
         String contentString = attributes.stream()
-                .map(a -> a.isId() ? nextRandomId() : a.getStringRepresentation(object))
+                .map(a -> {
+                    if (a.isId()) {
+
+                        String id = nextRandomId();
+                        a.setValue(object, id);
+                        return id;
+                    } else {
+                        return a.getStringRepresentation(object);
+                    }
+                })
                 .map(s -> "'" + s + "'")
                 .collect(Collectors.joining(","));
 
