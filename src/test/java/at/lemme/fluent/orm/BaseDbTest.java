@@ -1,5 +1,7 @@
 package at.lemme.fluent.orm;
 
+import at.lemme.orm.fluent.F;
+import at.lemme.orm.fluent.api.Fluent;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.core.io.ClassPathResource;
@@ -15,7 +17,7 @@ import java.sql.SQLException;
 abstract public class BaseDbTest {
 
     protected Connection connection;
-    protected FluentOrm fluentOrm;
+    protected Fluent fluent;
 
     @Before
     public void before() throws Exception {
@@ -23,7 +25,7 @@ abstract public class BaseDbTest {
         connection = DriverManager.getConnection("jdbc:h2:./test", "sa", "");
         connection.prepareStatement("DROP ALL OBJECTS").execute();
         ScriptUtils.executeSqlScript(connection, new ClassPathResource("testdata.sql"));
-        fluentOrm = new FluentOrm(connection);
+        fluent = new F(connection);
     }
 
     @After

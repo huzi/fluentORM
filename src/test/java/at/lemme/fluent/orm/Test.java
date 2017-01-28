@@ -1,15 +1,21 @@
 package at.lemme.fluent.orm;
 
+import at.lemme.orm.fluent.F;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import static at.lemme.orm.fluent.api.Condition.empty;
 
 /**
  * Created by thomas on 16.11.16.
@@ -40,6 +46,26 @@ class Generic<T> {
 public class Test {
 
     public static void main(String[] args) throws Exception {
+        Connection c = null;
+
+        new F(c).insert(new Test()).execute();
+        new F(c).insert(new Test(), new Test()).execute();
+
+        List<Test> x1 = new F(c).select(Test.class).fetch();
+        List<Test> x2 = new F(c).select(Test.class).where(empty()).fetch();
+        List<Test> x3 = new F(c).select(Test.class).where(empty()).orderBy("name", "asc").fetch();
+        List<Test> x4 = new F(c).select(Test.class).where(empty()).limit(5).fetch();
+        List<Test> x5 = new F(c).select(Test.class).where(empty()).limit(0, 10).fetch();
+
+
+        new F(c).delete(Test.class).execute();
+        new F(c).delete(Test.class).where(empty()).execute();
+        new F(c).deleteObject(new Test()).execute();
+        new F(c).deleteObjects(new Test(), new Test()).execute();
+        new F(c).deleteObjects(Arrays.asList(new Test())).execute();
+
+        new F(c).update(new Test()).execute();
+        new F(c).update(new Test(), new Test()).execute();
 
         List<Integer> list = new ArrayList();
         for (int i = 0; i < 100000; i++) {
