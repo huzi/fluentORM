@@ -1,6 +1,7 @@
 package at.lemme.fluent.orm;
 
 import at.lemme.orm.fluent.F;
+import at.lemme.orm.fluent.api.Order;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -53,7 +54,7 @@ public class Test {
 
         List<Test> x1 = new F(c).select(Test.class).fetch();
         List<Test> x2 = new F(c).select(Test.class).where(empty()).fetch();
-        List<Test> x3 = new F(c).select(Test.class).where(empty()).orderBy("name", "asc").fetch();
+        List<Test> x3 = new F(c).select(Test.class).where(empty()).orderBy("name", Order.ASC).fetch();
         List<Test> x4 = new F(c).select(Test.class).where(empty()).limit(5).fetch();
         List<Test> x5 = new F(c).select(Test.class).where(empty()).limit(0, 10).fetch();
 

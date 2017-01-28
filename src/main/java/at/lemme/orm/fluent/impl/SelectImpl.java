@@ -1,6 +1,7 @@
 package at.lemme.orm.fluent.impl;
 
 import at.lemme.orm.fluent.api.Condition;
+import at.lemme.orm.fluent.api.Order;
 import at.lemme.orm.fluent.api.Select;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
 
@@ -30,6 +31,16 @@ public class SelectImpl<T> implements Select<T> {
         }
     }
 
+    private class OrderBy {
+        String attribute;
+        Order order;
+
+        public OrderBy(String attribute, Order order) {
+            this.attribute = attribute;
+            this.order = order;
+        }
+    }
+
     private final Connection connection;
     private final Class<?> entityClass;
     private final Metadata metadata;
@@ -38,6 +49,7 @@ public class SelectImpl<T> implements Select<T> {
     private final String wildCardString;
 
     private Limit limit;
+    private OrderBy order;
 
     public SelectImpl(Connection connection, Class<?> clazz) {
         this.connection = connection;
@@ -53,23 +65,25 @@ public class SelectImpl<T> implements Select<T> {
 
     @Override
     public <T> Select<T> where(Condition condition) {
-        return null;
+        return (Select<T>) this;
     }
 
     @Override
-    public <T> Select<T> orderBy(String attribute, String direction) {
-        return null;
+    public <T> Select<T> orderBy(String attribute, Order order) {
+        this.order = new OrderBy(attribute, order);
+        return (Select<T>) this;
     }
 
     @Override
-    public <T> Select<T> limit(int i) {
-        limit = new Limit(i);
-        return this;
+    public <T> Select<T> limit(int start) {
+        limit = new Limit(start);
+        return (Select<T>) this;
     }
 
     @Override
-    public <T> Select<T> limit(int start, int i) {
-        return null;
+    public <T> Select<T> limit(int start, int skip) {
+        limit = new Limit(start, skip);
+        return (Select<T>) this;
     }
 
     @Override
@@ -77,6 +91,14 @@ public class SelectImpl<T> implements Select<T> {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append(columnString).append(' ');
         sql.append(" FROM ").append(metadata.getTableName());
+        if (order != null) {
+            sql.append(" ORDER BY ").append(order.attribute).append(' ').append(order.order);
+        }
+        if (limit != null) {
+            sql.append(" LIMIT ").append(limit.limit);
+            sql.append(" OFFSET ").append(limit.skip);
+        }
+
         List<T> resultList = new ArrayList<>();
         try {
             PreparedStatement stmt = connection.prepareStatement(sql.toString());

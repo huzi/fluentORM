@@ -1,8 +1,10 @@
 package at.lemme.fluent.orm.test;
 
 import at.lemme.fluent.orm.BaseDbTest;
+import at.lemme.orm.fluent.api.Order;
 import org.junit.Test;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,10 +19,6 @@ public class TestSelect extends BaseDbTest {
 
     @Test
     public void testSelectPerson() throws SQLException {
-        // GIVEN
-        LocalDateTime now = LocalDateTime.now();
-        Person p = new Person("1", "Thomas", "Lemmé", LocalDate.of(1984, 12, 18), now, 1);
-
         // WHEN
         List<Person> list = fluent.select(Person.class).fetch();
 
@@ -29,15 +27,63 @@ public class TestSelect extends BaseDbTest {
     }
 
     @Test
-    public void testLimit() {
-        // GIVEN
-
+    public void testLimit() throws SQLException {
         // WHEN
         List<Person> list = fluent.select(Person.class).limit(3).fetch();
 
         //THEN
         assertThat(list).hasSize(3);
+        assertThat(list.get(0).getId()).isNotEmpty();
+        assertThat(list.get(0).getFirstName()).isNotEmpty();
+        assertThat(list.get(0).getLastName()).isNotEmpty();
+        assertThat(list.get(0).getLastLogin()).isNotNull();
+        assertThat(list.get(0).getBirthDate()).isNotNull();
 
     }
 
+    @Test
+    public void testLimitOffset() throws SQLException {
+        // GIVEN
+        String sql = "SELECT COUNT(*) FROM Person;";
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        rs.next();
+        int count = rs.getInt(1);
+        System.out.println(count);
+
+        // WHEN
+        List<Person> list = fluent.select(Person.class).limit(3, count - 1).fetch();
+
+        //THEN
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).getId()).isNotEmpty();
+        assertThat(list.get(0).getFirstName()).isNotEmpty();
+        assertThat(list.get(0).getLastName()).isNotEmpty();
+        assertThat(list.get(0).getLastLogin()).isNotNull();
+        assertThat(list.get(0).getBirthDate()).isNotNull();
+
+    }
+
+    @Test
+    public void testOrderBy() {
+        // GIVEN
+
+        // WHEN
+        List<Person> list = fluent.select(Person.class).orderBy("birthDate", Order.ASC).limit(3).fetch();
+
+        //THEN
+        assertThat(list.get(0).getBirthDate()).isBeforeOrEqualTo(list.get(1).getBirthDate());
+        assertThat(list.get(1).getBirthDate()).isBeforeOrEqualTo(list.get(2).getBirthDate());
+    }
+
+    @Test
+    public void testOrderByDesc() {
+        // GIVEN
+
+        // WHEN
+        List<Person> list = fluent.select(Person.class).orderBy("birthDate", Order.DESC).limit(3).fetch();
+
+        //THEN
+        assertThat(list.get(0).getBirthDate()).isAfterOrEqualTo(list.get(1).getBirthDate());
+        assertThat(list.get(1).getBirthDate()).isAfterOrEqualTo(list.get(2).getBirthDate());
+    }
 }

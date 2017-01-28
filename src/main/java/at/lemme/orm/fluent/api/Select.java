@@ -7,7 +7,7 @@ public interface Select<T> extends Fetchable<T> {
 
     <T> Select<T> where(Condition condition);
 
-    <T> Select<T> orderBy(String attribute, String direction);
+    <T> Select<T> orderBy(String attribute, Order order);
 
     <T> Select<T> limit(int i);
 
