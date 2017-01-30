@@ -24,7 +24,8 @@ abstract public class BaseDbTest {
     public static void beforeClass() throws Exception {
         Class.forName("org.h2.Driver");
         connection = DriverManager.getConnection("jdbc:h2:./test", "sa", "");
-        connection.prepareStatement("DROP ALL OBJECTS").execute();
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/fluentOrmTest", "root", "root");
+        connection.prepareStatement("DROP TABLE IF EXISTS Person").execute();
         ScriptUtils.executeSqlScript(connection, new ClassPathResource("testdata.sql"));
         fluent = new F(connection);
         connection.setAutoCommit(false);
@@ -37,7 +38,7 @@ abstract public class BaseDbTest {
 
     @AfterClass
     public static void afterClass() throws SQLException {
-        connection.prepareStatement("DROP ALL OBJECTS").execute();
+        connection.prepareStatement("DROP TABLE IF EXISTS Person").execute();
         connection.commit();
         connection.close();
     }

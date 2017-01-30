@@ -1,6 +1,7 @@
 package at.lemme.orm.fluent;
 
 import at.lemme.orm.fluent.api.*;
+import at.lemme.orm.fluent.impl.DeleteImpl;
 import at.lemme.orm.fluent.impl.InsertImpl;
 import at.lemme.orm.fluent.impl.SelectImpl;
 
@@ -15,7 +16,6 @@ public class F implements Fluent {
     final Connection connection;
 
     public F(final Connection connection) {
-
         this.connection = connection;
     }
 
@@ -36,12 +36,14 @@ public class F implements Fluent {
 
     @Override
     public <T> Delete<T> delete(Class<?> T) {
-        return null;
+        return new DeleteImpl<T>(connection, T);
     }
 
     @Override
     public <T> DeleteObject<T> deleteObject(T object) {
-        return null;
+        DeleteImpl<T> delete = new DeleteImpl<>(connection, object.getClass());
+        delete.where(Conditions.equals("id", delete.metadata().getColumn("id").getValue(object)));
+        return delete;
     }
 
     @Override

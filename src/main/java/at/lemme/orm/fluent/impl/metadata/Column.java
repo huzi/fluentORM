@@ -64,4 +64,12 @@ public class Column {
             throw new RuntimeException(e);
         }
     }
+
+    public Object getValue(Object object) {
+        try {
+            return field.get(object);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

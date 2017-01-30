@@ -1,13 +1,12 @@
 package at.lemme.fluent.orm.test;
 
 import at.lemme.fluent.orm.BaseDbTest;
+import at.lemme.orm.fluent.api.Conditions;
 import at.lemme.orm.fluent.api.Order;
 import org.junit.Test;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,5 +84,19 @@ public class TestSelect extends BaseDbTest {
         //THEN
         assertThat(list.get(0).getBirthDate()).isAfterOrEqualTo(list.get(1).getBirthDate());
         assertThat(list.get(1).getBirthDate()).isAfterOrEqualTo(list.get(2).getBirthDate());
+    }
+
+    @Test
+    public void testWhere() {
+        // GIVEN
+        String id = "id1";
+
+        // WHEN
+        List<Person> list = fluent.select(Person.class)
+                .where(Conditions.equals("id", id)).fetch();
+
+        //THEN
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).getId()).isEqualTo(id);
     }
 }

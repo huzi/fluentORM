@@ -1,5 +1,34 @@
 # fluentORM
 
+## Roadmap
+
+### Version 0.1
+
+Simple CRUD: 
+* select + where, order, limit
+* delete where
+* update object/list
+* insert object/list
+
+### Backlog
+
+* Tests for illegal arguments (Conditions, crud etc.)
+* Annotations: rename Table, Columns, set Id
+* Id Generation: done by DBMS, by fluent
+* Relations
+* SQL functions: format date, count, sum...
+* DBMS support: H2, MySQL, Postgres, Oracle, SQL Server
+* Fluent SQL Support (projections, functions, joins)
+* SQL named parameters support?
+* Automatic DB schema generation
+* Aggregations, Grouping ?
+* select().byId() 
+* Support Datatypes
+  * All simple types
+  * All Date & Time types
+  * Blobs
+  * Streaming of Blobs
+
 ## select
 
     fluent.select().from(Person.class).list();

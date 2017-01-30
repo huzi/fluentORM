@@ -5,7 +5,7 @@ package at.lemme.orm.fluent.api;
  */
 public interface Select<T> extends Fetchable<T> {
 
-    <T> Select<T> where(Condition condition);
+    <T> Select<? extends T> where(Condition condition);
 
     <T> Select<T> orderBy(String attribute, Order order);
 

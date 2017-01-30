@@ -5,9 +5,9 @@ package at.lemme.orm.fluent.api;
  */
 public interface Condition {
 
+    String toSql(QueryParameters parameters);
 
     static Condition empty() {
-        return new Condition() {
-        };
+        return p -> "( 1 = 1 )";
     }
 }

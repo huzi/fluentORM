@@ -63,7 +63,7 @@ public class Person {
         if (firstName != null ? !firstName.equals(person.firstName) : person.firstName != null) return false;
         if (lastName != null ? !lastName.equals(person.lastName) : person.lastName != null) return false;
         if (birthDate != null ? !birthDate.equals(person.birthDate) : person.birthDate != null) return false;
-        return lastLogin != null ? lastLogin.equals(person.lastLogin) : person.lastLogin == null;
+        return lastLogin != null ? lastLogin.withNano(0).equals(person.lastLogin.withNano(0)) : person.lastLogin == null;
     }
 
     @Override
