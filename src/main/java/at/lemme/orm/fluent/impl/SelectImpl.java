@@ -2,13 +2,12 @@ package at.lemme.orm.fluent.impl;
 
 import at.lemme.orm.fluent.api.Condition;
 import at.lemme.orm.fluent.api.Order;
-import at.lemme.orm.fluent.api.QueryParameters;
 import at.lemme.orm.fluent.api.Select;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
 
-import java.sql.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,39 +41,6 @@ public class SelectImpl<T> implements Select<T> {
         }
     }
 
-    private class Parameters implements QueryParameters {
-        private List<Object> params = new ArrayList<>();
-
-        @Override
-        public void add(Object o) {
-            params.add(o);
-        }
-
-        @Override
-        public void apply(PreparedStatement stmt) {
-            int index = 1;
-            System.out.println(params);
-            try {
-                for (Object value : params) {
-                    if (value instanceof String) {
-                        stmt.setString(index, (String) value);
-                    } else if (value instanceof LocalDate) {
-                        stmt.setDate(index, Date.valueOf((LocalDate) value));
-                    } else if (value instanceof LocalDateTime) {
-                        stmt.setTimestamp(index, Timestamp.valueOf((LocalDateTime) value));
-                    } else if (value instanceof Integer) {
-                        stmt.setInt(index, (int) value);
-                    } else {
-                        throw new RuntimeException("Type not Supported!");
-                    }
-                    index++;
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     private final Connection connection;
     private final Class<?> entityClass;
     private final Metadata metadata;
@@ -93,7 +59,6 @@ public class SelectImpl<T> implements Select<T> {
         columnString =
                 metadata.getColumnNames().stream().collect(Collectors.joining(", "));
     }
-
 
     @Override
     public <T> Select<T> where(Condition condition) {
@@ -135,25 +100,21 @@ public class SelectImpl<T> implements Select<T> {
             sql.append(" OFFSET ").append(limit.skip);
         }
 
-        List<T> resultList = new ArrayList<>();
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql.toString());
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             parameters.apply(stmt);
-            ResultSet resultSet = stmt.executeQuery();
-
-
-            while (resultSet.next()) {
-                T obj = (T) metadata.getEntityClass().newInstance();
-                for (String columnName : metadata.getColumnNames()) {
-                    metadata.getColumn(columnName).setAttribute(obj, resultSet);
+            List<T> resultList = new ArrayList<>();
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                while (resultSet.next()) {
+                    T obj = (T) metadata.getEntityClass().newInstance();
+                    for (String columnName : metadata.getColumnNames()) {
+                        metadata.getColumn(columnName).setAttribute(obj, resultSet);
+                    }
+                    resultList.add(obj);
                 }
-                resultList.add(obj);
             }
-
-
+            return resultList;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return resultList;
     }
 }

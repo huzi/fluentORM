@@ -1,4 +1,4 @@
-package at.lemme.fluent.orm.test;
+package at.lemme.orm.fluent.test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,6 +24,30 @@ public class Person {
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.lastLogin = lastLogin;
+        this.loginCount = loginCount;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public void setLoginCount(int loginCount) {
         this.loginCount = loginCount;
     }
 

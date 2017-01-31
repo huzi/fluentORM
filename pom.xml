@@ -9,6 +9,7 @@
     <version>0.1-SNAPSHOT</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>4.1.6.RELEASE</spring.version>
         <hsqldb.version>2.3.2</hsqldb.version>
         <dbh2.version>1.4.187</dbh2.version>
@@ -23,6 +24,7 @@
             <groupId>org.hibernate.javax.persistence</groupId>
             <artifactId>hibernate-jpa-2.0-api</artifactId>
             <version>1.0.1.Final</version>
+            <scope>test</scope>
         </dependency>
 
 
@@ -47,6 +49,7 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>6.0.5</version>
+            <scope>test</scope>
         </dependency>
 
 
@@ -95,6 +98,19 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>findbugs</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
                 <version>1.1.11</version>
@@ -105,14 +121,24 @@
                     <targetTests>
                         <param>at.lemme.fluent.orm.metadata*</param>
                     </targetTests>
-                </configuration><executions>
-                <execution>
-                    <goals>
-                        <goal>report</goal>
-                    </goals>
-                </execution>
-            </executions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!--<goal>report</goal>-->
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.4</version>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>

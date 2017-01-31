@@ -10,10 +10,14 @@ Simple CRUD:
 * update object/list
 * insert object/list
 
+###Version 0.2
+
+* Annotations: rename table & columns, set id
+* Get id via Metadata class
+
 ### Backlog
 
 * Tests for illegal arguments (Conditions, crud etc.)
-* Annotations: rename Table, Columns, set Id
 * Id Generation: done by DBMS, by fluent
 * Relations
 * SQL functions: format date, count, sum...

@@ -1,8 +1,9 @@
-package at.lemme.fluent.orm.test;
+package at.lemme.orm.fluent.test;
 
-import at.lemme.fluent.orm.BaseDbTest;
+import at.lemme.orm.fluent.BaseDbTest;
 import at.lemme.orm.fluent.api.Conditions;
 import at.lemme.orm.fluent.api.Order;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.sql.ResultSet;
@@ -22,7 +23,7 @@ public class TestSelect extends BaseDbTest {
         List<Person> list = fluent.select(Person.class).fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
     }
 
     @Test
@@ -31,7 +32,7 @@ public class TestSelect extends BaseDbTest {
         List<Person> list = fluent.select(Person.class).limit(3).fetch();
 
         //THEN
-        assertThat(list).hasSize(3);
+        Assertions.assertThat(list).hasSize(3);
         assertThat(list.get(0).getId()).isNotEmpty();
         assertThat(list.get(0).getFirstName()).isNotEmpty();
         assertThat(list.get(0).getLastName()).isNotEmpty();
@@ -53,7 +54,7 @@ public class TestSelect extends BaseDbTest {
         List<Person> list = fluent.select(Person.class).limit(3, count - 1).fetch();
 
         //THEN
-        assertThat(list).hasSize(1);
+        Assertions.assertThat(list).hasSize(1);
         assertThat(list.get(0).getId()).isNotEmpty();
         assertThat(list.get(0).getFirstName()).isNotEmpty();
         assertThat(list.get(0).getLastName()).isNotEmpty();
@@ -96,7 +97,7 @@ public class TestSelect extends BaseDbTest {
                 .where(Conditions.equals("id", id)).fetch();
 
         //THEN
-        assertThat(list).hasSize(1);
+        Assertions.assertThat(list).hasSize(1);
         assertThat(list.get(0).getId()).isEqualTo(id);
     }
 }

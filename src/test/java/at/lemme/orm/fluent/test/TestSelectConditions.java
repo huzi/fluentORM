@@ -1,7 +1,8 @@
-package at.lemme.fluent.orm.test;
+package at.lemme.orm.fluent.test;
 
-import at.lemme.fluent.orm.BaseDbTest;
+import at.lemme.orm.fluent.BaseDbTest;
 import at.lemme.orm.fluent.api.Conditions;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -27,7 +28,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .where(Conditions.equals("id", id)).fetch();
 
         //THEN
-        assertThat(list).hasSize(1);
+        Assertions.assertThat(list).hasSize(1);
         assertThat(list.get(0).getId()).isEqualTo(id);
     }
 
@@ -41,7 +42,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .where(Conditions.equals("birthDate", birthday)).fetch();
 
         //THEN
-        assertThat(list).hasSize(1);
+        Assertions.assertThat(list).hasSize(1);
         assertThat(list.get(0).getBirthDate()).isEqualTo(birthday);
     }
 
@@ -55,7 +56,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .where(Conditions.equals("lastLogin", lastLogin)).fetch();
 
         //THEN
-        assertThat(list).hasSize(1);
+        Assertions.assertThat(list).hasSize(1);
         assertThat(list.get(0).getLastLogin()).isEqualTo(lastLogin);
     }
 
@@ -69,7 +70,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .where(Conditions.equals("loginCount", loginCount)).fetch();
 
         //THEN
-        assertThat(list).hasSize(1);
+        Assertions.assertThat(list).hasSize(1);
         assertThat(list.get(0).getLoginCount()).isEqualTo(loginCount);
     }
 
@@ -85,7 +86,7 @@ public class TestSelectConditions extends BaseDbTest {
         )).fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getId).collect(Collectors.toList())).contains(id);
     }
 
@@ -102,8 +103,8 @@ public class TestSelectConditions extends BaseDbTest {
         )).fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
-        assertThat(list)
+        Assertions.assertThat(list).isNotEmpty();
+        Assertions.assertThat(list)
                 .allMatch(person -> person.getFirstName().equals(firstname) || person.getLastName().equals(lastname));
     }
 
@@ -117,7 +118,7 @@ public class TestSelectConditions extends BaseDbTest {
         List<Person> list = fluent.select(Person.class).where(Conditions.isNull("firstName")).fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getId).collect(Collectors.toList())).contains(id);
     }
 
@@ -135,7 +136,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getId).collect(Collectors.toList())).doesNotContain(id);
     }
 
@@ -152,7 +153,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getId).collect(Collectors.toList())).contains(id);
     }
 
@@ -167,7 +168,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getId).collect(Collectors.toList())).contains(id);
     }
 
@@ -184,7 +185,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getFirstName).collect(Collectors.toList()))
                 .contains(firstName1, firstName2, firstName3);
     }
@@ -201,7 +202,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getBirthDate).collect(Collectors.toList()))
                 .contains(birthDate1, birthDate2);
     }
@@ -250,7 +251,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getFirstName).collect(Collectors.toList()))
                 .doesNotContain(firstName);
     }
@@ -266,7 +267,7 @@ public class TestSelectConditions extends BaseDbTest {
                 .fetch();
 
         //THEN
-        assertThat(list).isNotEmpty();
+        Assertions.assertThat(list).isNotEmpty();
         assertThat(list.stream().map(Person::getBirthDate).collect(Collectors.toList()))
                 .doesNotContain(birthDate);
     }

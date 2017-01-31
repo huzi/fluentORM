@@ -1,6 +1,7 @@
-package at.lemme.fluent.orm.test;
+package at.lemme.orm.fluent.test;
 
-import at.lemme.fluent.orm.BaseDbTest;
+import at.lemme.orm.fluent.BaseDbTest;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.sql.*;
@@ -27,8 +28,8 @@ public class TestInsert extends BaseDbTest {
 
         //THEN
         List<Person> result = fetchList("SELECT * FROM Person WHERE id='1';");
-        assertThat(result).hasSize(1);
-        assertThat(result).contains(p);
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result).contains(p);
     }
 
     @Test
@@ -44,10 +45,10 @@ public class TestInsert extends BaseDbTest {
 
         //THEN
         List<Person> result = fetchList("SELECT * FROM Person WHERE id IN('1', '2', '3');");
-        assertThat(result).hasSize(3);
-        assertThat(result).contains(p1);
-        assertThat(result).contains(p2);
-        assertThat(result).contains(p3);
+        Assertions.assertThat(result).hasSize(3);
+        Assertions.assertThat(result).contains(p1);
+        Assertions.assertThat(result).contains(p2);
+        Assertions.assertThat(result).contains(p3);
     }
 
     private List<Person> fetchList(String sql) throws SQLException {

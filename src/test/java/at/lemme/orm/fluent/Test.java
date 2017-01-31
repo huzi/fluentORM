@@ -1,6 +1,5 @@
-package at.lemme.fluent.orm;
+package at.lemme.orm.fluent;
 
-import at.lemme.orm.fluent.F;
 import at.lemme.orm.fluent.api.Order;
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package at.lemme.fluent.orm;
+package at.lemme.orm.fluent;
 
 import org.junit.After;
 import org.junit.Before;

@@ -42,8 +42,7 @@ public class InsertImpl<T> implements Insert<T> {
     }
 
     private void executeSql(StringBuilder sql) {
-        try {
-            final PreparedStatement stmt = connection.prepareStatement(sql.toString());
+        try (final PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             objects.forEach(object -> addBatchValues(stmt, object));
             stmt.executeBatch();
         } catch (Exception e) {

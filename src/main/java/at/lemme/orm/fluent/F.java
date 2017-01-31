@@ -4,9 +4,11 @@ import at.lemme.orm.fluent.api.*;
 import at.lemme.orm.fluent.impl.DeleteImpl;
 import at.lemme.orm.fluent.impl.InsertImpl;
 import at.lemme.orm.fluent.impl.SelectImpl;
+import at.lemme.orm.fluent.impl.UpdateImpl;
 
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * Created by thomas on 22.01.17.
@@ -31,7 +33,7 @@ public class F implements Fluent {
 
     @Override
     public <T> Update<T> update(T... objects) {
-        return null;
+        return new UpdateImpl<T>(connection, Arrays.asList(objects));
     }
 
     @Override
@@ -48,6 +50,16 @@ public class F implements Fluent {
 
     @Override
     public <T> DeleteObjects<T> deleteObjects(T... objects) {
-        return null;
+        final DeleteImpl<T> delete = new DeleteImpl<>(connection, objects[0].getClass());
+        String[] ids = Stream.of(objects)
+                .map(t -> {
+                    System.out.println(delete);
+                    System.out.println(delete.metadata());
+                    System.out.println(delete.metadata().getColumn("id"));
+                    return delete.metadata().getColumn("id").getValue(t);
+                })
+                .toArray(size -> new String[size]);
+        delete.where(Conditions.in("id", ids));
+        return (DeleteObjects<T>) delete;
     }
 }

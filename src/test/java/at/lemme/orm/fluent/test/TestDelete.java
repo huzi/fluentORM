@@ -1,11 +1,13 @@
-package at.lemme.fluent.orm.test;
+package at.lemme.orm.fluent.test;
 
-import at.lemme.fluent.orm.BaseDbTest;
+import at.lemme.orm.fluent.BaseDbTest;
 import at.lemme.orm.fluent.api.Conditions;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,6 +45,20 @@ public class TestDelete extends BaseDbTest {
         rs.next();
         int count = rs.getInt(1);
         assertThat(count).isEqualTo(0);
+    }
+
+    @Test
+    public void testDeleteByObjects() throws SQLException {
+        // GIVEN
+        List<Person> persons = fluent.select(Person.class).where(Conditions.in("id", "id0", "id1")).fetch();
+        Assertions.assertThat(persons).hasSize(2);
+
+        // WHEN
+        fluent.deleteObjects(persons.toArray(new Person[persons.size()])).execute();
+
+        //THEN
+        persons = fluent.select(Person.class).where(Conditions.in("id", "id0", "id1")).fetch();
+        Assertions.assertThat(persons).hasSize(0);
     }
 
 
