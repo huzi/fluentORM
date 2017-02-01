@@ -10,15 +10,14 @@ Simple CRUD:
 * update object/list
 * insert object/list
 
-
-###Version 0.2
+### Version 0.2
 
 * Annotations: rename table & attributes, set id
 * Get id via Metadata class
 * Add new datatypes: long, short, float, double
 
 
-###Version 0.3
+### Version 0.3
 
 * Add new datatypes: BigDecimal, Byte, Boolean
 * select().byId()
@@ -44,6 +43,11 @@ Simple CRUD:
   * Blobs
   * Streaming of Blobs
 * XML/Json Configuration
+
+| Feature   | Version   |
+| ---       | ---     |
+| Feature   |  sdsdfsf  |
+
 
 ## select
 

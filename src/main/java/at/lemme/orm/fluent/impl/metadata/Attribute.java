@@ -53,12 +53,40 @@ public class Attribute {
                 stmt.setDate(i, Date.valueOf((LocalDate) value));
             } else if (field.getType().equals(LocalDateTime.class)) {
                 stmt.setTimestamp(i, Timestamp.valueOf((LocalDateTime) value));
-            } else if (field.getType().equals(int.class)) {
+            } else if (isInt()) {
                 stmt.setInt(i, (int) value);
+            } else if (isLong()) {
+                stmt.setLong(i, (long) value);
+            } else if (isShort()) {
+                stmt.setShort(i, (short) value);
+            } else if (isFloat()) {
+                stmt.setFloat(i, (float) value);
+            } else if (isDouble()) {
+                stmt.setDouble(i, (double) value);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean isDouble() {
+        return field.getType().equals(double.class) || field.getType().equals(Double.class);
+    }
+
+    private boolean isFloat() {
+        return field.getType().equals(float.class) || field.getType().equals(Float.class);
+    }
+
+    private boolean isShort() {
+        return field.getType().equals(short.class) || field.getType().equals(Short.class);
+    }
+
+    private boolean isLong() {
+        return field.getType().equals(long.class) || field.getType().equals(Long.class);
+    }
+
+    private boolean isInt() {
+        return field.getType().equals(int.class) || field.getType().equals(Integer.class);
     }
 
     public void setAttribute(Object obj, ResultSet resultSet) {
@@ -70,8 +98,16 @@ public class Attribute {
                 value = resultSet.getDate(columnName).toLocalDate();
             } else if (field.getType().equals(LocalDateTime.class)) {
                 value = resultSet.getTimestamp(columnName).toLocalDateTime();
-            } else if (field.getType().equals(int.class)) {
+            } else if (isInt()) {
                 value = resultSet.getInt(columnName);
+            } else if (isLong()) {
+                value = resultSet.getLong(columnName);
+            } else if (isShort()) {
+                value = resultSet.getShort(columnName);
+            } else if (isFloat()) {
+                value = resultSet.getFloat(columnName);
+            } else if (isDouble()) {
+                value = resultSet.getDouble(columnName);
             }
             field.set(obj, value);
         } catch (Exception e) {

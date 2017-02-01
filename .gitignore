@@ -24,3 +24,7 @@ buildNumber.properties
 # Idea
 .idea/
 **/*.iml
+
+# H2
+*.mv.db
+*.trace.db
