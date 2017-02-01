@@ -1,13 +1,15 @@
 package at.lemme.orm.fluent.api;
 
+import at.lemme.orm.fluent.impl.metadata.Metadata;
+
 /**
  * Created by thomas on 22.01.17.
  */
 public interface Condition {
 
-    String toSql(QueryParameters parameters);
+    String toSql(Metadata metadata, QueryParameters parameters);
 
     static Condition empty() {
-        return p -> "( 1 = 1 )";
+        return (metadata, p) -> "( 1 = 1 )";
     }
 }

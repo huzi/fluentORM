@@ -33,43 +33,43 @@ public class UpdateImpl<T> implements Update<T> {
 
     @Override
     public void execute() {
-        final List<String> allColumnsExceptId = metadata.getColumnNames().stream()
-                .filter(column -> !"id".equals(column)).collect(Collectors.toList());
-        StringBuilder sql = buildSql(allColumnsExceptId);
+        final List<String> allAttributesExceptId = metadata.attributeNames().stream()
+                .filter(attribute -> !metadata.id().getName().equals(attribute)).collect(Collectors.toList());
+        StringBuilder sql = buildSql(allAttributesExceptId);
         try (final PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
-            objects.forEach(object -> addBatchValues(stmt, object, allColumnsExceptId));
+            objects.forEach(object -> addBatchValues(stmt, object, allAttributesExceptId));
             stmt.executeBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private StringBuilder buildSql(List<String> allColumnsExceptId) {
+    private StringBuilder buildSql(List<String> allAttributesExceptId) {
         StringBuilder sql = new StringBuilder("UPDATE ");
-        sql.append(metadata.getTableName());
+        sql.append(metadata.tableName());
         sql.append(" SET ");
-        String setStatements = allColumnsExceptId.stream().map(column -> column + " = ?")
+        String setStatements = allAttributesExceptId.stream().map(attribute -> attribute + " = ?")
                 .collect(Collectors.joining(", "));
         sql.append(setStatements);
-        sql.append(" WHERE ").append("id").append(" = ?");
+        sql.append(" WHERE ").append(metadata.id().getName()).append(" = ?");
         return sql;
     }
 
-    private void addBatchValues(PreparedStatement stmt, T object, List<String> allColumnsExceptId) {
+    private void addBatchValues(PreparedStatement stmt, T object, List<String> allAttributesExceptId) {
         try {
-            addValuesToPreparedStatement(stmt, object, allColumnsExceptId);
+            addValuesToPreparedStatement(stmt, object, allAttributesExceptId);
             stmt.addBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void addValuesToPreparedStatement(PreparedStatement stmt, T o, List<String> allColumnsExceptId) throws NoSuchFieldException, IllegalAccessException, SQLException {
+    private void addValuesToPreparedStatement(PreparedStatement stmt, T o, List<String> allAttributesExceptId) throws NoSuchFieldException, IllegalAccessException, SQLException {
 
-        for (int i = 1; i <= allColumnsExceptId.size(); i++) {
-            String columnName = allColumnsExceptId.get(i - 1);
-            metadata.getColumn(columnName).setParameter(stmt, i, o);
+        for (int i = 1; i <= allAttributesExceptId.size(); i++) {
+            String attributeName = allAttributesExceptId.get(i - 1);
+            metadata.getAttribute(attributeName).setParameter(stmt, i, o);
         }
-        metadata.getColumn("id").setParameter(stmt, allColumnsExceptId.size() + 1, o);
+        metadata.id().setParameter(stmt, allAttributesExceptId.size() + 1, o);
     }
 }

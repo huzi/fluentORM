@@ -9,58 +9,58 @@ import java.util.stream.Stream;
 public class Conditions {
 
     public static Condition and(Condition... conditions) {
-        return parameters -> {
+        return (metadata, parameters) -> {
             if (conditions.length > 0) {
                 StringBuilder joined = new StringBuilder();
                 joined.append('(');
                 joined.append(Stream.of(conditions)
-                        .map(condition -> condition.toSql(parameters))
+                        .map(condition -> condition.toSql(metadata, parameters))
                         .collect(Collectors.joining(") AND (")));
                 joined.append(')');
                 return joined.toString();
             } else {
-                return Condition.empty().toSql(parameters);
+                return Condition.empty().toSql(metadata, parameters);
             }
         };
     }
 
     public static Condition or(Condition... conditions) {
-        return parameters -> {
+        return (metadata, parameters) -> {
             if (conditions.length > 0) {
                 StringBuilder joined = new StringBuilder();
                 joined.append('(');
                 joined.append(Stream.of(conditions)
-                        .map(condition -> condition.toSql(parameters))
+                        .map(condition -> condition.toSql(metadata, parameters))
                         .collect(Collectors.joining(") OR (")));
                 joined.append(')');
                 return joined.toString();
             } else {
-                return Condition.empty().toSql(parameters);
+                return Condition.empty().toSql(metadata, parameters);
             }
         };
     }
 
-    public static Condition isNull(String column) {
-        return parameters -> "(" + column + " IS NULL)";
+    public static Condition isNull(String attribute) {
+        return (metadata, parameters) -> "(" + attribute + " IS NULL)";
     }
 
-    public static Condition isNotNull(String column) {
-        return parameters -> "(" + column + " IS NOT NULL)";
+    public static Condition isNotNull(String attribute) {
+        return (metadata, parameters) -> "(" + attribute + " IS NOT NULL)";
     }
 
-    public static Condition between(String column, Object value1, Object value2) {
-        return parameters -> {
+    public static Condition between(String attribute, Object value1, Object value2) {
+        return (metadata, parameters) -> {
             parameters.add(value1);
             parameters.add(value2);
-            return "(" + column + " BETWEEN ? AND ?)";
+            return "(" + attribute + " BETWEEN ? AND ?)";
         };
     }
 
-    public static Condition in(String column, Object... values) {
-        return parameters -> {
+    public static Condition in(String attribute, Object... values) {
+        return (metadata, parameters) -> {
             if (values.length > 0) {
                 StringBuilder joined = new StringBuilder();
-                joined.append('(').append(column).append(" IN (");
+                joined.append('(').append(attribute).append(" IN (");
                 joined.append(Stream.of(values)
                         .map(o -> {
                             parameters.add(o);
@@ -70,16 +70,16 @@ public class Conditions {
                 joined.append(')').append(')');
                 return joined.toString();
             } else {
-                return Condition.empty().toSql(parameters);
+                return Condition.empty().toSql(metadata, parameters);
             }
         };
     }
 
-    public static Condition notIn(String column, Object... values) {
-        return parameters -> {
+    public static Condition notIn(String attribute, Object... values) {
+        return (metadata, parameters) -> {
             if (values.length > 0) {
                 StringBuilder joined = new StringBuilder();
-                joined.append('(').append(column).append(" NOT IN (");
+                joined.append('(').append(attribute).append(" NOT IN (");
                 joined.append(Stream.of(values)
                         .map(o -> {
                             parameters.add(o);
@@ -89,59 +89,59 @@ public class Conditions {
                 joined.append(')').append(')');
                 return joined.toString();
             } else {
-                return Condition.empty().toSql(parameters);
+                return Condition.empty().toSql(metadata, parameters);
             }
         };
     }
 
-    public static Condition equals(String column, Object value) {
-        return parameters -> {
+    public static Condition equals(String attribute, Object value) {
+        return (metadata, parameters) -> {
             parameters.add(value);
-            return "(" + column + " = ?)";
+            return "(" + attribute + " = ?)";
         };
     }
 
-    public static Condition notEquals(String column, Object value) {
-        return parameters -> {
+    public static Condition notEquals(String attribute, Object value) {
+        return (metadata, parameters) -> {
             parameters.add(value);
-            return "(" + column + " <> ?)";
+            return "(" + attribute + " <> ?)";
         };
     }
 
-    public static Condition lowerThan(String column, Object value) {
-        return parameters -> {
+    public static Condition lowerThan(String attribute, Object value) {
+        return (metadata, parameters) -> {
             parameters.add(value);
-            return "(" + column + " < ?)";
+            return "(" + attribute + " < ?)";
         };
     }
 
-    public static Condition lowerThanOrEquals(String column, Object value) {
+    public static Condition lowerThanOrEquals(String attribute, Object value) {
 
-        return parameters -> {
+        return (metadata, parameters) -> {
             parameters.add(value);
-            return "(" + column + " <= ?)";
+            return "(" + attribute + " <= ?)";
         };
     }
 
-    public static Condition greaterThan(String column, Object value) {
+    public static Condition greaterThan(String attribute, Object value) {
 
-        return parameters -> {
+        return (metadata, parameters) -> {
             parameters.add(value);
-            return "(" + column + " > ?)";
+            return "(" + attribute + " > ?)";
         };
     }
 
-    public static Condition greaterThanOrEquals(String column, Object value) {
-        return parameters -> {
+    public static Condition greaterThanOrEquals(String attribute, Object value) {
+        return (metadata, parameters) -> {
             parameters.add(value);
-            return "(" + column + " >= ?)";
+            return "(" + attribute + " >= ?)";
         };
     }
 
-    public static Condition like(String column, String pattern) {
-        return parameters -> {
+    public static Condition like(String attribute, String pattern) {
+        return (metadata, parameters) -> {
             parameters.add(pattern);
-            return "(" + column + " LIKE ?)";
+            return "(" + metadata.getAttribute(attribute).getName() + " LIKE ?)";
         };
     }
 

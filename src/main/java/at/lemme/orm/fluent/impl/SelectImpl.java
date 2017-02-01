@@ -45,7 +45,7 @@ public class SelectImpl<T> implements Select<T> {
     private final Class<?> entityClass;
     private final Metadata metadata;
 
-    private final String columnString;
+    private final String attributeString;
 
     private Limit limit;
     private OrderBy order;
@@ -56,8 +56,8 @@ public class SelectImpl<T> implements Select<T> {
 
         entityClass = clazz;
         metadata = Metadata.of(entityClass);
-        columnString =
-                metadata.getColumnNames().stream().collect(Collectors.joining(", "));
+        attributeString =
+                metadata.attributeNames().stream().collect(Collectors.joining(", "));
     }
 
     @Override
@@ -89,9 +89,9 @@ public class SelectImpl<T> implements Select<T> {
         Parameters parameters = new Parameters();
 
         StringBuilder sql = new StringBuilder("SELECT ");
-        sql.append(columnString).append(' ');
-        sql.append(" FROM ").append(metadata.getTableName());
-        sql.append(" WHERE ").append(condition.toSql(parameters));
+        sql.append(attributeString).append(' ');
+        sql.append(" FROM ").append(metadata.tableName());
+        sql.append(" WHERE ").append(condition.toSql(metadata, parameters));
         if (order != null) {
             sql.append(" ORDER BY ").append(order.attribute).append(' ').append(order.order);
         }
@@ -106,8 +106,8 @@ public class SelectImpl<T> implements Select<T> {
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
                     T obj = (T) metadata.getEntityClass().newInstance();
-                    for (String columnName : metadata.getColumnNames()) {
-                        metadata.getColumn(columnName).setAttribute(obj, resultSet);
+                    for (String attributeName : metadata.attributeNames()) {
+                        metadata.getAttribute(attributeName).setAttribute(obj, resultSet);
                     }
                     resultList.add(obj);
                 }

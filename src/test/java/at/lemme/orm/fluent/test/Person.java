@@ -1,5 +1,7 @@
 package at.lemme.orm.fluent.test;
 
+import at.lemme.orm.fluent.api.annotation.Id;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -7,7 +9,7 @@ import java.time.LocalDateTime;
  * Created by thomas on 22.01.17.
  */
 public class Person {
-
+    @Id
     private String id;
     private String firstName;
     private String lastName;

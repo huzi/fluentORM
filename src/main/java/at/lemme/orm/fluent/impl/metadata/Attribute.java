@@ -1,5 +1,7 @@
 package at.lemme.orm.fluent.impl.metadata;
 
+import at.lemme.orm.fluent.api.annotation.Id;
+
 import java.lang.reflect.Field;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -11,20 +13,20 @@ import java.time.LocalDateTime;
 /**
  * Created by thomas on 27.01.17.
  */
-public class Column {
+public class Attribute {
 
     private final Field field;
-    private final String columnName;
+    private final String name;
 
-    private Column(String columnName, Field declaredField) {
-        this.columnName = columnName;
+    private Attribute(String attributeName, Field declaredField) {
+        this.name = attributeName;
         declaredField.setAccessible(true);
         field = declaredField;
     }
 
-    public static Column of(Class<?> clazz, String columnName) {
+    public static Attribute of(Class<?> clazz, String attributeName) {
         try {
-            return new Column(columnName, clazz.getDeclaredField(columnName));
+            return new Attribute(attributeName, clazz.getDeclaredField(attributeName));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -51,13 +53,13 @@ public class Column {
         Object value = null;
         try {
             if (field.getType().equals(String.class)) {
-                value = resultSet.getString(columnName);
+                value = resultSet.getString(name);
             } else if (field.getType().equals(LocalDate.class)) {
-                value = resultSet.getDate(columnName).toLocalDate();
+                value = resultSet.getDate(name).toLocalDate();
             } else if (field.getType().equals(LocalDateTime.class)) {
-                value = resultSet.getTimestamp(columnName).toLocalDateTime();
+                value = resultSet.getTimestamp(name).toLocalDateTime();
             } else if (field.getType().equals(int.class)) {
-                value = resultSet.getInt(columnName);
+                value = resultSet.getInt(name);
             }
             field.set(obj, value);
         } catch (Exception e) {
@@ -71,5 +73,13 @@ public class Column {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    boolean hasIdAnnotation(){
+        return field.isAnnotationPresent(Id.class);
     }
 }

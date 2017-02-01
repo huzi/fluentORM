@@ -12,8 +12,9 @@ Simple CRUD:
 
 ###Version 0.2
 
-* Annotations: rename table & columns, set id
+* Annotations: rename table & attributes, set id
 * Get id via Metadata class
+* Add new datatypes: long, short, float double
 
 ### Backlog
 
@@ -32,6 +33,7 @@ Simple CRUD:
   * All Date & Time types
   * Blobs
   * Streaming of Blobs
+* XML/Json Configuration
 
 ## select
 

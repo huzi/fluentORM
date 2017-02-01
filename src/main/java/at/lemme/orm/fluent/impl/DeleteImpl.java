@@ -42,8 +42,8 @@ public class DeleteImpl<T> implements Delete<T>, DeleteObject<T>, DeleteObjects 
         Parameters parameters = new Parameters();
 
         StringBuilder sql = new StringBuilder("DELETE FROM ")
-                .append(metadata.getTableName())
-                .append(" WHERE ").append(condition.toSql(parameters));
+                .append(metadata.tableName())
+                .append(" WHERE ").append(condition.toSql(metadata, parameters));
 
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())){
             parameters.apply(stmt);

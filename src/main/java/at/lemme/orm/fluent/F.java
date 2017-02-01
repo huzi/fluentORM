@@ -5,6 +5,7 @@ import at.lemme.orm.fluent.impl.DeleteImpl;
 import at.lemme.orm.fluent.impl.InsertImpl;
 import at.lemme.orm.fluent.impl.SelectImpl;
 import at.lemme.orm.fluent.impl.UpdateImpl;
+import at.lemme.orm.fluent.impl.metadata.Attribute;
 
 import java.sql.Connection;
 import java.util.Arrays;
@@ -44,22 +45,19 @@ public class F implements Fluent {
     @Override
     public <T> DeleteObject<T> deleteObject(T object) {
         DeleteImpl<T> delete = new DeleteImpl<>(connection, object.getClass());
-        delete.where(Conditions.equals("id", delete.metadata().getColumn("id").getValue(object)));
+        final Attribute idAttribute = delete.metadata().id();
+        delete.where(Conditions.equals(idAttribute.getName(), idAttribute.getValue(object)));
         return delete;
     }
 
     @Override
     public <T> DeleteObjects<T> deleteObjects(T... objects) {
         final DeleteImpl<T> delete = new DeleteImpl<>(connection, objects[0].getClass());
+        final Attribute idAttribute = delete.metadata().id();
         String[] ids = Stream.of(objects)
-                .map(t -> {
-                    System.out.println(delete);
-                    System.out.println(delete.metadata());
-                    System.out.println(delete.metadata().getColumn("id"));
-                    return delete.metadata().getColumn("id").getValue(t);
-                })
+                .map(t -> idAttribute.getValue(t))
                 .toArray(size -> new String[size]);
-        delete.where(Conditions.in("id", ids));
+        delete.where(Conditions.in(idAttribute.getName(), ids));
         return (DeleteObjects<T>) delete;
     }
 }

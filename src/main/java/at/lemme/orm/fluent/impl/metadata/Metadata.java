@@ -1,8 +1,12 @@
 package at.lemme.orm.fluent.impl.metadata;
 
+import at.lemme.orm.fluent.api.annotation.Table;
+
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,20 +18,44 @@ public class Metadata {
 
     private final Class<?> entityClass;
     private final String tableName;
-    private final List<String> columnNames;
-    private final Map<String, Column> columns;
+    private final List<String> attributeNames;
+    private final Map<String, Attribute> attributeMap;
+    private final Attribute idAttribute;
 
     private Metadata(Class<?> clazz) {
         entityClass = clazz;
-        tableName = clazz.getSimpleName();
-        columnNames = Stream.of(clazz.getDeclaredFields())
+        tableName = extractTableName(clazz);
+        attributeNames = Stream.of(clazz.getDeclaredFields())
                 .map(Field::getName)
                 .collect(Collectors.toList());
-        columns = columnNames.stream()
+        attributeMap = attributeNames.stream()
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        columnName -> Column.of(clazz, columnName))
+                        name -> Attribute.of(clazz, name))
                 );
+        idAttribute = extractId(attributeMap.values());
+    }
+
+    private String extractTableName(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(Table.class)) {
+            String name = clazz.getAnnotation(Table.class).name();
+            if (name.length() > 0) {
+                return name;
+            }
+        }
+        return clazz.getSimpleName();
+    }
+
+    private Attribute extractId(Collection<Attribute> attributes) {
+        Optional<Attribute> idAnnotationOptional = attributes.stream().filter(Attribute::hasIdAnnotation).findFirst();
+        Optional<Attribute> idAttributeNameOptional = attributes.stream().filter(attribute -> attribute.getName().equals("id")).findFirst();
+        if (idAnnotationOptional.isPresent()) {
+            return idAnnotationOptional.get();
+        } else if (idAttributeNameOptional.isPresent()) {
+            return idAttributeNameOptional.get();
+        } else {
+            throw new RuntimeException("No id attribute found on class " + entityClass);
+        }
     }
 
     public static Metadata of(Class<?> clazz) {
@@ -35,16 +63,20 @@ public class Metadata {
         return metadata;
     }
 
-    public String getTableName() {
+    public String tableName() {
         return tableName;
     }
 
-    public List<String> getColumnNames() {
-        return columnNames;
+    public Attribute id(){
+        return idAttribute;
     }
 
-    public Column getColumn(String name) {
-        return columns.get(name);
+    public List<String> attributeNames() {
+        return attributeNames;
+    }
+
+    public Attribute getAttribute(String name) {
+        return attributeMap.get(name);
     }
 
     public Class<?> getEntityClass() {

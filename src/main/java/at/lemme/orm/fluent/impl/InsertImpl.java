@@ -20,7 +20,7 @@ public class InsertImpl<T> implements Insert<T> {
     private final Class<?> entityClass;
     private final Metadata metadata;
 
-    private final String columnString;
+    private final String attributeString;
     private final String wildCardString;
 
     public InsertImpl(Connection connection, List<T> objects) {
@@ -29,10 +29,10 @@ public class InsertImpl<T> implements Insert<T> {
 
         entityClass = objects.get(0).getClass();
         metadata = Metadata.of(entityClass);
-        columnString =
-                metadata.getColumnNames().stream().collect(Collectors.joining(", "));
+        attributeString =
+                metadata.attributeNames().stream().collect(Collectors.joining(", "));
         wildCardString =
-                metadata.getColumnNames().stream().map(c -> "?").collect(Collectors.joining(", "));
+                metadata.attributeNames().stream().map(c -> "?").collect(Collectors.joining(", "));
     }
 
     @Override
@@ -52,8 +52,8 @@ public class InsertImpl<T> implements Insert<T> {
 
     private StringBuilder buildSql() {
         final StringBuilder sql = new StringBuilder("INSERT INTO ");
-        sql.append(metadata.getTableName());
-        sql.append('(').append(columnString).append(')');
+        sql.append(metadata.tableName());
+        sql.append('(').append(attributeString).append(')');
         sql.append(" VALUES ");
         sql.append('(').append(wildCardString).append(')');
 
@@ -72,9 +72,9 @@ public class InsertImpl<T> implements Insert<T> {
 
     private void addValuesToPreparedStatement(PreparedStatement stmt, T o) throws NoSuchFieldException, IllegalAccessException, SQLException {
 
-        for (int i = 1; i <= metadata.getColumnNames().size(); i++) {
-            String columnName = metadata.getColumnNames().get(i - 1);
-            metadata.getColumn(columnName).setParameter(stmt, i, o);
+        for (int i = 1; i <= metadata.attributeNames().size(); i++) {
+            String attributeName = metadata.attributeNames().get(i - 1);
+            metadata.getAttribute(attributeName).setParameter(stmt, i, o);
         }
 
     }
