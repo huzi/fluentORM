@@ -21,6 +21,7 @@ public class Metadata {
     private final List<String> attributeNames;
     private final Map<String, Attribute> attributeMap;
     private final Attribute idAttribute;
+    private final List<String> columnNames;
 
     private Metadata(Class<?> clazz) {
         entityClass = clazz;
@@ -33,6 +34,9 @@ public class Metadata {
                         Function.identity(),
                         name -> Attribute.of(clazz, name))
                 );
+        columnNames = attributeNames.stream()
+                .map(attributeName->attributeMap.get(attributeName).columnName())
+                .collect(Collectors.toList());
         idAttribute = extractId(attributeMap.values());
     }
 
@@ -48,7 +52,7 @@ public class Metadata {
 
     private Attribute extractId(Collection<Attribute> attributes) {
         Optional<Attribute> idAnnotationOptional = attributes.stream().filter(Attribute::hasIdAnnotation).findFirst();
-        Optional<Attribute> idAttributeNameOptional = attributes.stream().filter(attribute -> attribute.getName().equals("id")).findFirst();
+        Optional<Attribute> idAttributeNameOptional = attributes.stream().filter(attribute -> attribute.name().equals("id")).findFirst();
         if (idAnnotationOptional.isPresent()) {
             return idAnnotationOptional.get();
         } else if (idAttributeNameOptional.isPresent()) {
@@ -71,12 +75,19 @@ public class Metadata {
         return idAttribute;
     }
 
+    public List<String> columnNames() {
+        return columnNames;
+    }
     public List<String> attributeNames() {
         return attributeNames;
     }
 
     public Attribute getAttribute(String name) {
         return attributeMap.get(name);
+    }
+
+    public String columnForAttribute(String name) {
+        return attributeMap.get(name).columnName();
     }
 
     public Class<?> getEntityClass() {

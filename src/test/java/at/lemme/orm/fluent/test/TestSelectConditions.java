@@ -112,7 +112,7 @@ public class TestSelectConditions extends BaseDbTest {
     public void testWhereIsNull() throws SQLException {
         // GIVEN
         String id = "id0";
-        connection.createStatement().executeUpdate("UPDATE Person SET firstName = null WHERE id = '" + id + "'");
+        connection.createStatement().executeUpdate("UPDATE Person SET column_firstName = null WHERE column_id = '" + id + "'");
 
         // WHEN
         List<Person> list = fluent.select(Person.class).where(Conditions.isNull("firstName")).fetch();
@@ -126,7 +126,7 @@ public class TestSelectConditions extends BaseDbTest {
     public void testWhereIsNotNull() throws SQLException {
         // GIVEN
         String id = "id0";
-        connection.createStatement().executeUpdate("UPDATE Person SET lastName = null WHERE id = '" + id + "'");
+        connection.createStatement().executeUpdate("UPDATE Person SET column_lastName = null WHERE column_id = '" + id + "'");
 
         // WHEN
         List<Person> list = fluent.select(Person.class)

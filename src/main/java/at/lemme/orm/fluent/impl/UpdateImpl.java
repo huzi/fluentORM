@@ -27,14 +27,10 @@ public class UpdateImpl<T> implements Update<T> {
         metadata = Metadata.of(entityClass);
     }
 
-    public Metadata metadata() {
-        return metadata;
-    }
-
     @Override
     public void execute() {
         final List<String> allAttributesExceptId = metadata.attributeNames().stream()
-                .filter(attribute -> !metadata.id().getName().equals(attribute)).collect(Collectors.toList());
+                .filter(attribute -> !metadata.id().name().equals(attribute)).collect(Collectors.toList());
         StringBuilder sql = buildSql(allAttributesExceptId);
         try (final PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             objects.forEach(object -> addBatchValues(stmt, object, allAttributesExceptId));
@@ -48,10 +44,11 @@ public class UpdateImpl<T> implements Update<T> {
         StringBuilder sql = new StringBuilder("UPDATE ");
         sql.append(metadata.tableName());
         sql.append(" SET ");
-        String setStatements = allAttributesExceptId.stream().map(attribute -> attribute + " = ?")
+        String setStatements = allAttributesExceptId.stream()
+                .map(attribute -> metadata.columnForAttribute(attribute) + " = ?")
                 .collect(Collectors.joining(", "));
         sql.append(setStatements);
-        sql.append(" WHERE ").append(metadata.id().getName()).append(" = ?");
+        sql.append(" WHERE ").append(metadata.id().columnName()).append(" = ?");
         return sql;
     }
 

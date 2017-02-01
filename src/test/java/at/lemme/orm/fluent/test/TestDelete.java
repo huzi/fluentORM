@@ -25,7 +25,7 @@ public class TestDelete extends BaseDbTest {
         fluent.delete(Person.class).where(Conditions.equals("id", id)).execute();
 
         //THEN
-        ResultSet rs = connection.createStatement().executeQuery("SELECT count(*) FROM Person WHERE id='" + id + "';");
+        ResultSet rs = connection.createStatement().executeQuery("SELECT count(*) FROM Person WHERE column_id='" + id + "';");
         rs.next();
         int count = rs.getInt(1);
         assertThat(count).isEqualTo(0);
@@ -41,7 +41,7 @@ public class TestDelete extends BaseDbTest {
         fluent.deleteObject(person).execute();
 
         //THEN
-        ResultSet rs = connection.createStatement().executeQuery("SELECT count(*) FROM Person WHERE id='" + person.getId() + "';");
+        ResultSet rs = connection.createStatement().executeQuery("SELECT count(*) FROM Person WHERE column_id='" + person.getId() + "';");
         rs.next();
         int count = rs.getInt(1);
         assertThat(count).isEqualTo(0);

@@ -1,5 +1,6 @@
 package at.lemme.orm.fluent.impl.metadata;
 
+import at.lemme.orm.fluent.api.annotation.Column;
 import at.lemme.orm.fluent.api.annotation.Id;
 
 import java.lang.reflect.Field;
@@ -17,11 +18,22 @@ public class Attribute {
 
     private final Field field;
     private final String name;
+    private final String columnName;
 
     private Attribute(String attributeName, Field declaredField) {
         this.name = attributeName;
         declaredField.setAccessible(true);
         field = declaredField;
+        columnName = extractColumnName(declaredField);
+    }
+
+    private String extractColumnName(Field declaredField) {
+        if (declaredField.isAnnotationPresent(Column.class) &&
+                declaredField.getAnnotation(Column.class).name().length() > 0) {
+            return declaredField.getAnnotation(Column.class).name();
+        } else {
+            return declaredField.getName();
+        }
     }
 
     public static Attribute of(Class<?> clazz, String attributeName) {
@@ -53,13 +65,13 @@ public class Attribute {
         Object value = null;
         try {
             if (field.getType().equals(String.class)) {
-                value = resultSet.getString(name);
+                value = resultSet.getString(columnName);
             } else if (field.getType().equals(LocalDate.class)) {
-                value = resultSet.getDate(name).toLocalDate();
+                value = resultSet.getDate(columnName).toLocalDate();
             } else if (field.getType().equals(LocalDateTime.class)) {
-                value = resultSet.getTimestamp(name).toLocalDateTime();
+                value = resultSet.getTimestamp(columnName).toLocalDateTime();
             } else if (field.getType().equals(int.class)) {
-                value = resultSet.getInt(name);
+                value = resultSet.getInt(columnName);
             }
             field.set(obj, value);
         } catch (Exception e) {
@@ -75,11 +87,15 @@ public class Attribute {
         }
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
-    boolean hasIdAnnotation(){
+    public String columnName() {
+        return columnName;
+    }
+
+    boolean hasIdAnnotation() {
         return field.isAnnotationPresent(Id.class);
     }
 }

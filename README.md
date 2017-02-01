@@ -10,11 +10,21 @@ Simple CRUD:
 * update object/list
 * insert object/list
 
+
 ###Version 0.2
 
 * Annotations: rename table & attributes, set id
 * Get id via Metadata class
-* Add new datatypes: long, short, float double
+* Add new datatypes: long, short, float, double
+
+
+###Version 0.3
+
+* Add new datatypes: BigDecimal, Byte, Boolean
+* select().byId()
+* Id generation done by Fluent
+* Support H2, MySQL, PostgreSQL
+
 
 ### Backlog
 
@@ -28,7 +38,7 @@ Simple CRUD:
 * Automatic DB schema generation
 * Aggregations, Grouping ?
 * select().byId() 
-* Support Datatypes
+* Support Datatypes: https://www.tutorialspoint.com/hibernate/hibernate_mapping_types.htm
   * All simple types
   * All Date & Time types
   * Blobs

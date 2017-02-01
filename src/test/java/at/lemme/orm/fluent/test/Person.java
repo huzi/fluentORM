@@ -1,5 +1,6 @@
 package at.lemme.orm.fluent.test;
 
+import at.lemme.orm.fluent.api.annotation.Column;
 import at.lemme.orm.fluent.api.annotation.Id;
 
 import java.time.LocalDate;
@@ -10,11 +11,22 @@ import java.time.LocalDateTime;
  */
 public class Person {
     @Id
+    @Column(name = "column_id")
     private String id;
+
+    @Column(name = "column_firstName")
     private String firstName;
+
+    @Column(name = "column_lastName")
     private String lastName;
+
+    @Column(name = "column_birthDate")
     private LocalDate birthDate;
+
+    @Column(name = "column_lastLogin")
     private LocalDateTime lastLogin;
+
+    @Column(name = "column_loginCount")
     private int loginCount;
 
     public Person() {

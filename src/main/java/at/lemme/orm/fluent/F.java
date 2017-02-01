@@ -46,7 +46,7 @@ public class F implements Fluent {
     public <T> DeleteObject<T> deleteObject(T object) {
         DeleteImpl<T> delete = new DeleteImpl<>(connection, object.getClass());
         final Attribute idAttribute = delete.metadata().id();
-        delete.where(Conditions.equals(idAttribute.getName(), idAttribute.getValue(object)));
+        delete.where(Conditions.equals(idAttribute.name(), idAttribute.getValue(object)));
         return delete;
     }
 
@@ -57,7 +57,7 @@ public class F implements Fluent {
         String[] ids = Stream.of(objects)
                 .map(t -> idAttribute.getValue(t))
                 .toArray(size -> new String[size]);
-        delete.where(Conditions.in(idAttribute.getName(), ids));
+        delete.where(Conditions.in(idAttribute.name(), ids));
         return (DeleteObjects<T>) delete;
     }
 }

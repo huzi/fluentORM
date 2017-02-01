@@ -30,9 +30,9 @@ public class InsertImpl<T> implements Insert<T> {
         entityClass = objects.get(0).getClass();
         metadata = Metadata.of(entityClass);
         attributeString =
-                metadata.attributeNames().stream().collect(Collectors.joining(", "));
+                metadata.columnNames().stream().collect(Collectors.joining(", "));
         wildCardString =
-                metadata.attributeNames().stream().map(c -> "?").collect(Collectors.joining(", "));
+                metadata.columnNames().stream().map(c -> "?").collect(Collectors.joining(", "));
     }
 
     @Override

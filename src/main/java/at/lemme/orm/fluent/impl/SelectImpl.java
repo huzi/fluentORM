@@ -32,11 +32,11 @@ public class SelectImpl<T> implements Select<T> {
     }
 
     private class OrderBy {
-        String attribute;
+        String column;
         Order order;
 
         public OrderBy(String attribute, Order order) {
-            this.attribute = attribute;
+            this.column = metadata.columnForAttribute(attribute);
             this.order = order;
         }
     }
@@ -57,7 +57,7 @@ public class SelectImpl<T> implements Select<T> {
         entityClass = clazz;
         metadata = Metadata.of(entityClass);
         attributeString =
-                metadata.attributeNames().stream().collect(Collectors.joining(", "));
+                metadata.columnNames().stream().collect(Collectors.joining(", "));
     }
 
     @Override
@@ -93,7 +93,7 @@ public class SelectImpl<T> implements Select<T> {
         sql.append(" FROM ").append(metadata.tableName());
         sql.append(" WHERE ").append(condition.toSql(metadata, parameters));
         if (order != null) {
-            sql.append(" ORDER BY ").append(order.attribute).append(' ').append(order.order);
+            sql.append(" ORDER BY ").append(order.column).append(' ').append(order.order);
         }
         if (limit != null) {
             sql.append(" LIMIT ").append(limit.limit);

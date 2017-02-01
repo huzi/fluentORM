@@ -27,7 +27,7 @@ public class TestInsert extends BaseDbTest {
         fluent.insert(p).execute();
 
         //THEN
-        List<Person> result = fetchList("SELECT * FROM Person WHERE id='1';");
+        List<Person> result = fetchList("SELECT * FROM Person WHERE column_id='1';");
         Assertions.assertThat(result).hasSize(1);
         Assertions.assertThat(result).contains(p);
     }
@@ -44,7 +44,7 @@ public class TestInsert extends BaseDbTest {
         fluent.insert(p1, p2, p3).execute();
 
         //THEN
-        List<Person> result = fetchList("SELECT * FROM Person WHERE id IN('1', '2', '3');");
+        List<Person> result = fetchList("SELECT * FROM Person WHERE column_id IN('1', '2', '3');");
         Assertions.assertThat(result).hasSize(3);
         Assertions.assertThat(result).contains(p1);
         Assertions.assertThat(result).contains(p2);
@@ -56,7 +56,12 @@ public class TestInsert extends BaseDbTest {
         ResultSet rs = stm.executeQuery(sql);
         List<Person> result = new ArrayList<>();
         while (rs.next()) {
-            Person person = new Person(rs.getString("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getDate("birthDate").toLocalDate(), rs.getTimestamp("lastLogin").toLocalDateTime(), rs.getInt("loginCount"));
+            Person person = new Person(rs.getString("column_id"),
+                    rs.getString("column_firstName"),
+                    rs.getString("column_lastName"),
+                    rs.getDate("column_birthDate").toLocalDate(),
+                    rs.getTimestamp("column_lastLogin").toLocalDateTime(),
+                    rs.getInt("column_loginCount"));
             result.add(person);
         }
         return result;
@@ -67,7 +72,7 @@ public class TestInsert extends BaseDbTest {
         // GIVEN
 
         // WHEN
-        String insertTableSQL = "INSERT INTO Person(id, firstName, lastName, birthDate, lastLogin, loginCount) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertTableSQL = "INSERT INTO Person(column_id, column_firstName, column_lastName, column_birthDate, column_lastLogin, column_loginCount) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(insertTableSQL);
         preparedStatement.setString(1, "x");
         preparedStatement.setString(2, "y");

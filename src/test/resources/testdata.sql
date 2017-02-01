@@ -1,13 +1,13 @@
 CREATE TABLE Person(
-    id VARCHAR(16) PRIMARY KEY,
-    firstName VARCHAR(255),
-    lastName VARCHAR(255),
-    birthDate DATE,
-    lastLogin TIMESTAMP,
-    loginCount INTEGER
+    column_id VARCHAR(16) PRIMARY KEY,
+    column_firstName VARCHAR(255),
+    column_lastName VARCHAR(255),
+    column_birthDate DATE,
+    column_lastLogin TIMESTAMP,
+    column_loginCount INTEGER
 );
 
-INSERT INTO Person (id, firstName, lastName, birthDate, lastLogin, loginCount)
+INSERT INTO Person (column_id, column_firstName, column_lastName, column_birthDate, column_lastLogin, column_loginCount)
     VALUES
        ('id0', 'Thomas', 'Lemmé', '1984-12-18', '2017-01-22 13:37:00', 100),
        ('id1', 'Noah', 'Schneider', '1968-02-27', '2017-01-22 13:37:11', 10),
