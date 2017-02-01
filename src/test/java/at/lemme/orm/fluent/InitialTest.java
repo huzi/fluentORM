@@ -56,7 +56,7 @@ public class InitialTest {
         // GIVEN
 
         // WHEN
-        ScriptUtils.executeSqlScript(connection, new ClassPathResource("testdata.sql"));
+        ScriptUtils.executeSqlScript(connection, new ClassPathResource("testdata-crud.sql"));
 
         //THEN
         ResultSet rs = connection.prepareStatement("SELECT * FROM Person").executeQuery();

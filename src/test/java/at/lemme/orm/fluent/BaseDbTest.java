@@ -27,7 +27,7 @@ abstract public class BaseDbTest {
         connection = DriverManager.getConnection("jdbc:h2:./test", "sa", "");
 //        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/fluentOrmTest", "root", "root");
         connection.prepareStatement("DROP TABLE IF EXISTS Person").execute();
-        ScriptUtils.executeSqlScript(connection, new EncodedResource(new ClassPathResource("testdata.sql"), Charset.forName("UTF8")));
+        ScriptUtils.executeSqlScript(connection, new EncodedResource(new ClassPathResource("testdata-crud.sql"), Charset.forName("UTF8")));
         fluent = new F(connection);
         connection.setAutoCommit(false);
     }

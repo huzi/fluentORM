@@ -1,4 +1,4 @@
-package at.lemme.orm.fluent.test;
+package at.lemme.orm.fluent.test.crud;
 
 import at.lemme.orm.fluent.BaseDbTest;
 import org.assertj.core.api.Assertions;
