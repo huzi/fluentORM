@@ -2,14 +2,14 @@ package at.lemme.orm.fluent.impl.metadata;
 
 import at.lemme.orm.fluent.api.annotation.Column;
 import at.lemme.orm.fluent.api.annotation.Id;
+import at.lemme.orm.fluent.api.annotation.ManyToOne;
+import at.lemme.orm.fluent.api.annotation.OneToMany;
 
 import java.lang.reflect.Field;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Created by thomas on 27.01.17.
@@ -19,54 +19,75 @@ public class Attribute {
     private final Field field;
     private final String name;
     private final String columnName;
+    private final Optional<Relation> relation;
 
-    private Attribute(String attributeName, Field declaredField) {
-        this.name = attributeName;
+    private Attribute(Field declaredField) {
+        this.name = declaredField.getName();
         declaredField.setAccessible(true);
         field = declaredField;
         columnName = extractColumnName(declaredField);
+        if (field.isAnnotationPresent(ManyToOne.class) || field.isAnnotationPresent(OneToMany.class)) {
+            relation = Optional.of(Relation.of(this));
+        } else {
+            relation = Optional.empty();
+        }
     }
 
     private String extractColumnName(Field declaredField) {
         if (declaredField.isAnnotationPresent(Column.class) &&
                 declaredField.getAnnotation(Column.class).name().length() > 0) {
             return declaredField.getAnnotation(Column.class).name();
+        } else if (declaredField.isAnnotationPresent(ManyToOne.class) && declaredField.getAnnotation(ManyToOne.class).column().length() > 0) {
+            return declaredField.getAnnotation(ManyToOne.class).column();
         } else {
             return declaredField.getName();
         }
     }
 
-    public static Attribute of(Class<?> clazz, String attributeName) {
+    public static Attribute of(Field field) {
         try {
-            return new Attribute(attributeName, clazz.getDeclaredField(attributeName));
+            return new Attribute(field);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void setParameter(PreparedStatement stmt, int i, Object o) {
+
+    public void setParameter(PreparedStatement stmt, int parameterIndex, Object o) {
         try {
             Object value = field.get(o);
-            if (field.getType().equals(String.class)) {
-                stmt.setString(i, (String) value);
-            } else if (field.getType().equals(LocalDate.class)) {
-                stmt.setDate(i, Date.valueOf((LocalDate) value));
-            } else if (field.getType().equals(LocalDateTime.class)) {
-                stmt.setTimestamp(i, Timestamp.valueOf((LocalDateTime) value));
-            } else if (isInt()) {
-                stmt.setInt(i, (int) value);
-            } else if (isLong()) {
-                stmt.setLong(i, (long) value);
-            } else if (isShort()) {
-                stmt.setShort(i, (short) value);
-            } else if (isFloat()) {
-                stmt.setFloat(i, (float) value);
-            } else if (isDouble()) {
-                stmt.setDouble(i, (double) value);
-            }
+            setValueToStatement(stmt, parameterIndex, value);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void setValueToStatement(PreparedStatement stmt, int parameterIndex, Object value) throws SQLException {
+        if (field.getType().equals(String.class)) {
+            stmt.setString(parameterIndex, (String) value);
+        } else if (field.getType().equals(LocalDate.class)) {
+            stmt.setDate(parameterIndex, Date.valueOf((LocalDate) value));
+        } else if (field.getType().equals(LocalDateTime.class)) {
+            stmt.setTimestamp(parameterIndex, Timestamp.valueOf((LocalDateTime) value));
+        } else if (isInt()) {
+            stmt.setInt(parameterIndex, (int) value);
+        } else if (isLong()) {
+            stmt.setLong(parameterIndex, (long) value);
+        } else if (isShort()) {
+            stmt.setShort(parameterIndex, (short) value);
+        } else if (isFloat()) {
+            stmt.setFloat(parameterIndex, (float) value);
+        } else if (isDouble()) {
+            stmt.setDouble(parameterIndex, (double) value);
+        }
+    }
+
+    public boolean isRelation() {
+        return relation.isPresent();
+    }
+
+    public Optional<Relation> relation() {
+        return relation;
     }
 
     private boolean isDouble() {
@@ -133,5 +154,17 @@ public class Attribute {
 
     boolean hasIdAnnotation() {
         return field.isAnnotationPresent(Id.class);
+    }
+
+    Field field() {
+        return field;
+    }
+
+    @Override
+    public String toString() {
+        return "Attribute{" +
+                "name='" + name + '\'' +
+                ", columnName='" + columnName + '\'' +
+                '}';
     }
 }

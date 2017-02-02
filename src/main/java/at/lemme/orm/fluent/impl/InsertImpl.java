@@ -1,7 +1,9 @@
 package at.lemme.orm.fluent.impl;
 
 import at.lemme.orm.fluent.api.Insert;
+import at.lemme.orm.fluent.impl.metadata.Attribute;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
+import at.lemme.orm.fluent.impl.metadata.Relation;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -64,6 +66,7 @@ public class InsertImpl<T> implements Insert<T> {
     private void addBatchValues(PreparedStatement stmt, T object) {
         try {
             addValuesToPreparedStatement(stmt, object);
+            System.out.println(stmt);
             stmt.addBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -72,9 +75,19 @@ public class InsertImpl<T> implements Insert<T> {
 
     private void addValuesToPreparedStatement(PreparedStatement stmt, T o) throws NoSuchFieldException, IllegalAccessException, SQLException {
 
-        for (int i = 1; i <= metadata.attributeNames().size(); i++) {
-            String attributeName = metadata.attributeNames().get(i - 1);
-            metadata.getAttribute(attributeName).setParameter(stmt, i, o);
+        int index = 1;
+        for (String attributeName : metadata.attributeNames()) {
+            System.out.println(attributeName);
+            final Attribute attribute = metadata.getAttribute(attributeName);
+            if (!attribute.isRelation()) {
+                attribute.setParameter(stmt, index, o);
+                index++;
+            } else if (attribute.relation().get().type().equals(Relation.Type.ManyToOne)) {
+                final Relation relation = attribute.relation().get();
+                Object value = attribute.getValue(o);
+                relation.referencedMetadata().id().setParameter(stmt, index, value);
+                index++;
+            }
         }
 
     }

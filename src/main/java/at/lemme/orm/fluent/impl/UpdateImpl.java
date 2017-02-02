@@ -1,6 +1,7 @@
 package at.lemme.orm.fluent.impl;
 
 import at.lemme.orm.fluent.api.Update;
+import at.lemme.orm.fluent.impl.metadata.Attribute;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
 
 import java.sql.Connection;
@@ -29,43 +30,45 @@ public class UpdateImpl<T> implements Update<T> {
 
     @Override
     public void execute() {
-        final List<String> allAttributesExceptId = metadata.attributeNames().stream()
-                .filter(attribute -> !metadata.id().name().equals(attribute)).collect(Collectors.toList());
-        StringBuilder sql = buildSql(allAttributesExceptId);
+        final List<Attribute> allColumnAttributesExceptId = metadata.columnAttributes().stream()
+                .filter(attribute -> !metadata.id().name().equals(attribute.name()))
+                .collect(Collectors.toList());
+        StringBuilder sql = buildSql(allColumnAttributesExceptId);
         try (final PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
-            objects.forEach(object -> addBatchValues(stmt, object, allAttributesExceptId));
+            objects.forEach(object -> addBatchValues(stmt, object, allColumnAttributesExceptId));
             stmt.executeBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private StringBuilder buildSql(List<String> allAttributesExceptId) {
+    private StringBuilder buildSql(List<Attribute> allAttributesExceptId) {
         StringBuilder sql = new StringBuilder("UPDATE ");
         sql.append(metadata.tableName());
         sql.append(" SET ");
         String setStatements = allAttributesExceptId.stream()
-                .map(attribute -> metadata.columnForAttribute(attribute) + " = ?")
+                .map(attribute -> attribute.columnName() + " = ?")
                 .collect(Collectors.joining(", "));
         sql.append(setStatements);
         sql.append(" WHERE ").append(metadata.id().columnName()).append(" = ?");
         return sql;
     }
 
-    private void addBatchValues(PreparedStatement stmt, T object, List<String> allAttributesExceptId) {
+    private void addBatchValues(PreparedStatement stmt, T object, List<Attribute> allAttributesExceptId) {
         try {
             addValuesToPreparedStatement(stmt, object, allAttributesExceptId);
+            System.out.println(stmt);
             stmt.addBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void addValuesToPreparedStatement(PreparedStatement stmt, T o, List<String> allAttributesExceptId) throws NoSuchFieldException, IllegalAccessException, SQLException {
-
-        for (int i = 1; i <= allAttributesExceptId.size(); i++) {
-            String attributeName = allAttributesExceptId.get(i - 1);
-            metadata.getAttribute(attributeName).setParameter(stmt, i, o);
+    private void addValuesToPreparedStatement(PreparedStatement stmt, T o, List<Attribute> allAttributesExceptId) throws NoSuchFieldException, IllegalAccessException, SQLException {
+        int parameterIndex = 1;
+        for (Attribute attribute : allAttributesExceptId) {
+            attribute.setParameter(stmt, parameterIndex, o);
+            parameterIndex++;
         }
         metadata.id().setParameter(stmt, allAttributesExceptId.size() + 1, o);
     }

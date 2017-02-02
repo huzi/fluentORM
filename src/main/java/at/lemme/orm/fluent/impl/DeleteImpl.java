@@ -45,8 +45,9 @@ public class DeleteImpl<T> implements Delete<T>, DeleteObject<T>, DeleteObjects 
                 .append(metadata.tableName())
                 .append(" WHERE ").append(condition.toSql(metadata, parameters));
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())){
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             parameters.apply(stmt);
+            System.out.println(stmt);
             stmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);

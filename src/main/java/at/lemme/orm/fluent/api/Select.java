@@ -5,12 +5,14 @@ package at.lemme.orm.fluent.api;
  */
 public interface Select<T> extends Fetchable<T> {
 
-    <T> Select<? extends T> where(Condition condition);
+    <T> Select<T> with(String relation);
+
+    <T> Select<T> where(Condition condition);
 
     <T> Select<T> orderBy(String attribute, Order order);
 
-    <T> Select<T> limit(int i);
+    <T> Select<T> limit(int limit);
 
-    <T> Select<T> limit(int start, int i);
+    <T> Select<T> limit(int limit, int offset);
 
 }

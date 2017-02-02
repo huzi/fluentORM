@@ -2,11 +2,7 @@ package at.lemme.orm.fluent.impl.metadata;
 
 import at.lemme.orm.fluent.api.annotation.Table;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,28 +12,23 @@ import java.util.stream.Stream;
  */
 public class Metadata {
 
+    private static Map<Class<?>, Metadata> metadatas = new HashMap<>();
+
     private final Class<?> entityClass;
     private final String tableName;
-    private final List<String> attributeNames;
+    private final List<Attribute> attributes;
     private final Map<String, Attribute> attributeMap;
     private final Attribute idAttribute;
-    private final List<String> columnNames;
+    private final List<Relation> relations;
 
     private Metadata(Class<?> clazz) {
+        metadatas.put(clazz, this);
         entityClass = clazz;
         tableName = extractTableName(clazz);
-        attributeNames = Stream.of(clazz.getDeclaredFields())
-                .map(Field::getName)
-                .collect(Collectors.toList());
-        attributeMap = attributeNames.stream()
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        name -> Attribute.of(clazz, name))
-                );
-        columnNames = attributeNames.stream()
-                .map(attributeName->attributeMap.get(attributeName).columnName())
-                .collect(Collectors.toList());
+        attributes = Stream.of(clazz.getDeclaredFields()).map(Attribute::of).collect(Collectors.toList());
+        attributeMap = attributes.stream().collect(Collectors.toMap(Attribute::name, Function.identity()));
         idAttribute = extractId(attributeMap.values());
+        relations = attributes.stream().map(Attribute::relation).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     private String extractTableName(Class<?> clazz) {
@@ -63,23 +54,37 @@ public class Metadata {
     }
 
     public static Metadata of(Class<?> clazz) {
-        Metadata metadata = new Metadata(clazz);
-        return metadata;
+        if (metadatas.containsKey(clazz)) {
+            return metadatas.get(clazz);
+        } else {
+            return new Metadata(clazz);
+        }
     }
 
     public String tableName() {
         return tableName;
     }
 
-    public Attribute id(){
+    public Attribute id() {
         return idAttribute;
     }
 
     public List<String> columnNames() {
-        return columnNames;
+        return attributes.stream().filter(attribute -> !(attribute.isRelation() && attribute.relation().get().type.equals(Relation.Type.OneToMany)))
+                .map(Attribute::columnName).collect(Collectors.toList());
     }
+
+    public List<Attribute> columnAttributes() {
+        return attributes.stream().filter(attribute -> !(attribute.isRelation() && attribute.relation().get().type.equals(Relation.Type.OneToMany)))
+                .collect(Collectors.toList());
+    }
+
     public List<String> attributeNames() {
-        return attributeNames;
+        return attributes.stream().map(Attribute::name).collect(Collectors.toList());
+    }
+
+    public List<Relation> relations() {
+        return relations;
     }
 
     public Attribute getAttribute(String name) {
@@ -92,5 +97,18 @@ public class Metadata {
 
     public Class<?> getEntityClass() {
         return entityClass;
+    }
+
+    @Override
+    public String toString() {
+        return "Metadata{" +
+                "\nentityClass=" + entityClass +
+                ",\n tableName='" + tableName + '\'' +
+                ",\n attributes=" + attributes +
+                ",\n attributeMap=" + attributeMap +
+                ",\n idAttribute=" + idAttribute +
+                ",\n columnNames=" + columnNames() +
+                ",\n relations=" + relations +
+                '}';
     }
 }
