@@ -8,9 +8,7 @@ import at.lemme.orm.fluent.impl.metadata.Relation;
 import at.lemme.orm.fluent.impl.select.Limit;
 import at.lemme.orm.fluent.impl.select.OrderBy;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -85,11 +83,13 @@ public class SelectImpl<T> implements Select<T> {
             System.out.println(stmt);
             List<T> resultList = new ArrayList<>();
             try (ResultSet resultSet = stmt.executeQuery()) {
+                printColumns(resultSet);
                 while (resultSet.next()) {
                     T obj = (T) metadata.getEntityClass().newInstance();
                     for (String attributeName : metadata.attributeNames()) {
                         metadata.getAttribute(attributeName).setAttribute(obj, resultSet);
                     }
+                    printRow(resultSet);
                     resultList.add(obj);
                 }
             }
@@ -97,6 +97,30 @@ public class SelectImpl<T> implements Select<T> {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void printRow(ResultSet resultSet) throws SQLException {
+        final ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('|');
+        for (int i = 1; i <= columnCount; i++) {
+            sb.append(resultSet.getString(i)).append('|');
+        }
+        System.out.println(sb.toString());
+    }
+
+    private void printColumns(ResultSet resultSet) throws SQLException {
+        final ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('|');
+        for (int i = 1; i <= columnCount; i++) {
+            sb.append(metaData.getColumnLabel(i)).append('|');
+        }
+        System.out.println(sb.toString());
     }
 
     private StringBuilder buildSql(Parameters parameters) {
@@ -117,7 +141,7 @@ public class SelectImpl<T> implements Select<T> {
             String joinAlias = "j0";
             Relation joinAttribute = fetchRelations.get(0);
 
-            sql.append(" LEFT JOIN ").append(joinAttribute.referencedColumn());
+            sql.append(" LEFT JOIN ").append(joinAttribute.referencedTable()).append(' ').append(joinAlias);
             sql.append(" ON (");
             sql.append(alias).append('.').append(joinAttribute.column());
             sql.append('=');
