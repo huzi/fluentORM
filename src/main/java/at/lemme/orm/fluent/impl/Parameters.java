@@ -24,7 +24,6 @@ public class Parameters implements QueryParameters {
     @Override
     public void apply(PreparedStatement stmt) {
         int index = 1;
-        System.out.println(params);
         try {
             for (Object value : params) {
                 if (value instanceof String) {

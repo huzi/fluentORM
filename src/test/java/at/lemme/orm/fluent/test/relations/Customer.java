@@ -46,4 +46,13 @@ public class Customer {
     public void setLists(List<TodoList> lists) {
         this.lists = lists;
     }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", lists=" + lists +
+                '}';
+    }
 }

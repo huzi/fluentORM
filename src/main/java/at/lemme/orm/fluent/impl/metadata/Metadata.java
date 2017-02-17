@@ -28,7 +28,7 @@ public class Metadata {
         attributes = Stream.of(clazz.getDeclaredFields()).map(Attribute::of).collect(Collectors.toList());
         attributeMap = attributes.stream().collect(Collectors.toMap(Attribute::name, Function.identity()));
         idAttribute = extractId(attributeMap.values());
-        relations = attributes.stream().map(Attribute::relation).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+        relations = attributes.stream().filter(Attribute::isRelation).map(Attribute::relation).map(Optional::get).collect(Collectors.toList());
     }
 
     private String extractTableName(Class<?> clazz) {

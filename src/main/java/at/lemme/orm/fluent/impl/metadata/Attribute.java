@@ -110,25 +110,26 @@ public class Attribute {
         return field.getType().equals(int.class) || field.getType().equals(Integer.class);
     }
 
-    public void setAttribute(Object obj, ResultSet resultSet) {
+    public void setAttribute(Object obj, ResultSet resultSet, String tableAlias) {
         Object value = null;
+        String columnLabel = "fluent_" + tableAlias + "_" + columnName;
         try {
             if (field.getType().equals(String.class)) {
-                value = resultSet.getString(columnName);
+                value = resultSet.getString(columnLabel);
             } else if (field.getType().equals(LocalDate.class)) {
-                value = resultSet.getDate(columnName).toLocalDate();
+                value = resultSet.getDate(columnLabel).toLocalDate();
             } else if (field.getType().equals(LocalDateTime.class)) {
-                value = resultSet.getTimestamp(columnName).toLocalDateTime();
+                value = resultSet.getTimestamp(columnLabel).toLocalDateTime();
             } else if (isInt()) {
-                value = resultSet.getInt(columnName);
+                value = resultSet.getInt(columnLabel);
             } else if (isLong()) {
-                value = resultSet.getLong(columnName);
+                value = resultSet.getLong(columnLabel);
             } else if (isShort()) {
-                value = resultSet.getShort(columnName);
+                value = resultSet.getShort(columnLabel);
             } else if (isFloat()) {
-                value = resultSet.getFloat(columnName);
+                value = resultSet.getFloat(columnLabel);
             } else if (isDouble()) {
-                value = resultSet.getDouble(columnName);
+                value = resultSet.getDouble(columnLabel);
             }
             field.set(obj, value);
         } catch (Exception e) {
@@ -166,5 +167,13 @@ public class Attribute {
                 "name='" + name + '\'' +
                 ", columnName='" + columnName + '\'' +
                 '}';
+    }
+
+    public void setValue(Object obj, Object value) {
+        try {
+            field.set(obj, value);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

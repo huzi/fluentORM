@@ -43,6 +43,10 @@ public class Relation {
         return new Relation(attribute);
     }
 
+    public Attribute attribute() {
+        return attribute;
+    }
+
     public String name(){
         return attribute.name();
     }
@@ -77,6 +81,10 @@ public class Relation {
         }else{
             return attribute.columnName();
         }
+    }
+
+    public String mappedBy() {
+        return mappedBy;
     }
 
     @Override

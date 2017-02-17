@@ -6,7 +6,7 @@ CREATE TABLE Customer(
 CREATE TABLE TodoList(
     id INTEGER PRIMARY KEY,
     customerId INTEGER,
-    title VARCHAR(255)
+    name VARCHAR(255)
 );
 
 CREATE TABLE Item(

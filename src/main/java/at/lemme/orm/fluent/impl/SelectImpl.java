@@ -3,16 +3,25 @@ package at.lemme.orm.fluent.impl;
 import at.lemme.orm.fluent.api.Condition;
 import at.lemme.orm.fluent.api.Order;
 import at.lemme.orm.fluent.api.Select;
+import at.lemme.orm.fluent.impl.metadata.Attribute;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
 import at.lemme.orm.fluent.impl.metadata.Relation;
+import at.lemme.orm.fluent.impl.select.FetchRelation;
 import at.lemme.orm.fluent.impl.select.Limit;
 import at.lemme.orm.fluent.impl.select.OrderBy;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static at.lemme.orm.fluent.impl.metadata.Relation.Type.ManyToOne;
+import static at.lemme.orm.fluent.impl.metadata.Relation.Type.OneToMany;
+import static at.lemme.orm.fluent.impl.util.JdbcUtil.printColumns;
+import static at.lemme.orm.fluent.impl.util.JdbcUtil.printRow;
 
 /**
  * Created by thomas on 22.01.17.
@@ -24,11 +33,12 @@ public class SelectImpl<T> implements Select<T> {
     private final Class<?> entityClass;
     private final Metadata metadata;
 
-    private final String alias;
+    private static final String alias = "t";
+    private final String idAlias;
     private final String attributeString;
 
 
-    private List<Relation> fetchRelations = Collections.emptyList();
+    private List<FetchRelation> fetchRelations = Collections.emptyList();
     private Limit limit;
     private OrderBy order;
     private Condition condition = Condition.empty();
@@ -37,14 +47,20 @@ public class SelectImpl<T> implements Select<T> {
         this.connection = connection;
         entityClass = clazz;
         metadata = Metadata.of(entityClass);
-        alias = "t0";
-        attributeString =
-                metadata.columnNames().stream().map(c -> alias + "." + c).collect(Collectors.joining(", "));
+        idAlias = "fluent_" + alias + "_" + metadata.id().columnName();
+        attributeString = metadata.columnNames().stream()
+                .map(c -> alias + "." + c + " AS fluent_" + alias + "_" + c)
+                .collect(Collectors.joining(", "));
     }
 
     @Override
-    public Select<T> with(String relation) {
-        fetchRelations = metadata.relations().stream().filter(r -> r.name().equals(relation)).collect(Collectors.toList());
+    public Select<T> with(String... relations) {
+        List<String> relationList = Arrays.asList(relations);
+        AtomicInteger index = new AtomicInteger();
+        fetchRelations = metadata.relations().stream()
+                .filter(r -> relationList.contains(r.name()))
+                .map(r -> FetchRelation.of(index.getAndIncrement(), r))
+                .collect(Collectors.toList());
         return this;
     }
 
@@ -75,52 +91,86 @@ public class SelectImpl<T> implements Select<T> {
     @Override
     public List<T> fetch() {
         Parameters parameters = new Parameters();
-
         StringBuilder sql = buildSql(parameters);
 
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             parameters.apply(stmt);
             System.out.println(stmt);
-            List<T> resultList = new ArrayList<>();
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                printColumns(resultSet);
-                while (resultSet.next()) {
-                    T obj = (T) metadata.getEntityClass().newInstance();
-                    for (String attributeName : metadata.attributeNames()) {
-                        metadata.getAttribute(attributeName).setAttribute(obj, resultSet);
-                    }
-                    printRow(resultSet);
-                    resultList.add(obj);
-                }
-            }
-            return resultList;
+            return executeAndFetch(stmt);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void printRow(ResultSet resultSet) throws SQLException {
-        final ResultSetMetaData metaData = resultSet.getMetaData();
-        int columnCount = metaData.getColumnCount();
+    private List<T> executeAndFetch(PreparedStatement stmt) throws SQLException, InstantiationException, IllegalAccessException {
+        List<T> resultList = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append('|');
-        for (int i = 1; i <= columnCount; i++) {
-            sb.append(resultSet.getString(i)).append('|');
+        List<String> relationIdAliases = fetchRelations.stream()
+                .map(FetchRelation::idColumnAlias)
+                .collect(Collectors.toList());
+        Map<String, List<String>> fetchedIds = new HashMap<>();
+        fetchedIds.put(idAlias, new ArrayList<>());
+        relationIdAliases.forEach(alias -> fetchedIds.put(alias, new ArrayList<>()));
+
+        try (ResultSet resultSet = stmt.executeQuery()) {
+            printColumns(resultSet);
+            while (resultSet.next()) {
+                fetchRow(resultSet, resultList, fetchedIds);
+            }
         }
-        System.out.println(sb.toString());
+        return resultList;
     }
 
-    private void printColumns(ResultSet resultSet) throws SQLException {
-        final ResultSetMetaData metaData = resultSet.getMetaData();
-        int columnCount = metaData.getColumnCount();
+    private void fetchRow(ResultSet resultSet, List<T> resultList, Map<String, List<String>> fetchedIds) throws InstantiationException, IllegalAccessException, SQLException {
 
-        StringBuilder sb = new StringBuilder();
-        sb.append('|');
-        for (int i = 1; i <= columnCount; i++) {
-            sb.append(metaData.getColumnLabel(i)).append('|');
+
+        printRow(resultSet);
+        // first, fetch the root object
+        final T parent;
+        final String rootId = resultSet.getString(idAlias);
+        if (!fetchedIds.get(idAlias).contains(rootId)) {
+            parent = (T) metadata.getEntityClass().newInstance();
+            for (Attribute attribute : metadata.columnAttributes()) {
+                attribute.setAttribute(parent, resultSet, alias);
+            }
+            fetchedIds.get(idAlias).add(rootId);
+            resultList.add(parent);
+        } else {
+            parent = resultList.stream().filter(o -> metadata.id().getValue(o).toString().equals(rootId)).findFirst().get();
         }
-        System.out.println(sb.toString());
+
+        // then fetch related objects
+        for (FetchRelation relation : fetchRelations) {
+            final String relationIdValue = resultSet.getString(relation.idColumnAlias());
+            if (relationIdValue == null) {
+                continue;
+            }
+            System.out.println("relationIdValue:" + relationIdValue);
+            if (!fetchedIds.get(relation.idColumnAlias()).contains(relationIdValue)) {
+                // Fetch object
+                Object child = relation.relation().referencedMetadata().getEntityClass().newInstance();
+                for (Attribute attribute : relation.relation().referencedMetadata().columnAttributes()) {
+                    attribute.setAttribute(child, resultSet, relation.tableAlias());
+                }
+                System.out.println(child.toString());
+                fetchedIds.get(relation.idColumnAlias()).add(relationIdValue);
+
+                // Connect related Objects
+                if (OneToMany.equals(relation.type())) {
+                    final Attribute attribute = relation.relation().attribute();
+                    if (attribute.getValue(parent) == null) {
+                        attribute.setValue(parent, new ArrayList<>());
+                    }
+                    ((List) attribute.getValue(parent)).add(child);
+                    relation.relation().referencedMetadata().getAttribute(relation.relation().mappedBy()).setValue(child, parent);
+                } else if (ManyToOne.equals(relation.type())) {
+                    final Attribute attribute = relation.relation().attribute();
+                    attribute.setValue(parent, child);
+                }
+            }
+        }
+
+
     }
 
     private StringBuilder buildSql(Parameters parameters) {
@@ -128,24 +178,22 @@ public class SelectImpl<T> implements Select<T> {
         sql.append(attributeString);
 
         if (!fetchRelations.isEmpty()) {
-            String joinAlias = "j0";
-            Relation joinAttribute = fetchRelations.get(0);
-            String joinAttributes = joinAttribute.referencedMetadata().columnNames().stream()
-                    .map(c -> joinAlias + "." + c).collect(Collectors.joining(", "));
-            sql.append(',').append(joinAttributes);
+            fetchRelations.forEach(relation -> sql.append(',').append(relation.attributeString()));
         }
 
         sql.append(" FROM ").append(metadata.tableName()).append(' ').append(alias);
 
         if (!fetchRelations.isEmpty()) {
-            String joinAlias = "j0";
-            Relation joinAttribute = fetchRelations.get(0);
+            fetchRelations.forEach(relation -> {
+                String joinAlias = relation.tableAlias();
+                Relation joinAttribute = relation.relation();
 
-            sql.append(" LEFT JOIN ").append(joinAttribute.referencedTable()).append(' ').append(joinAlias);
-            sql.append(" ON (");
-            sql.append(alias).append('.').append(joinAttribute.column());
-            sql.append('=');
-            sql.append(joinAlias).append('.').append(joinAttribute.referencedColumn()).append(')');
+                sql.append(" LEFT JOIN ").append(joinAttribute.referencedTable()).append(' ').append(joinAlias);
+                sql.append(" ON (");
+                sql.append(alias).append('.').append(joinAttribute.column());
+                sql.append('=');
+                sql.append(joinAlias).append('.').append(joinAttribute.referencedColumn()).append(')');
+            });
         }
 
         sql.append(" WHERE ").append(condition.toSql(metadata, parameters));

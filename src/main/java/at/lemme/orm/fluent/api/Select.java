@@ -5,7 +5,7 @@ package at.lemme.orm.fluent.api;
  */
 public interface Select<T> extends Fetchable<T> {
 
-    <T> Select<T> with(String relation);
+    <T> Select<T> with(String... relation);
 
     <T> Select<T> where(Condition condition);
 

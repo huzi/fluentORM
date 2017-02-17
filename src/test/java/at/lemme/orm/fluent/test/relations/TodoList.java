@@ -1,5 +1,6 @@
 package at.lemme.orm.fluent.test.relations;
 
+import at.lemme.orm.fluent.api.annotation.Column;
 import at.lemme.orm.fluent.api.annotation.ManyToOne;
 import at.lemme.orm.fluent.api.annotation.OneToMany;
 
@@ -11,6 +12,7 @@ import java.util.List;
 public class TodoList {
     private int id;
 
+    @Column(name = "name")
     private String title;
 
     @ManyToOne(column = "customerId")
@@ -59,5 +61,15 @@ public class TodoList {
 
     public void setItems(List<Item> items) {
         this.items = items;
+    }
+
+    @Override
+    public String toString() {
+        return "TodoList{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", customer=" + (customer == null ? "null" : customer.getId()) +
+                ", items=" + items +
+                '}';
     }
 }

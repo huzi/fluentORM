@@ -58,8 +58,6 @@ public class InsertImpl<T> implements Insert<T> {
         sql.append('(').append(attributeString).append(')');
         sql.append(" VALUES ");
         sql.append('(').append(wildCardString).append(')');
-
-        System.out.println(sql);
         return sql;
     }
 
@@ -77,7 +75,6 @@ public class InsertImpl<T> implements Insert<T> {
 
         int index = 1;
         for (String attributeName : metadata.attributeNames()) {
-            System.out.println(attributeName);
             final Attribute attribute = metadata.getAttribute(attributeName);
             if (!attribute.isRelation()) {
                 attribute.setParameter(stmt, index, o);
