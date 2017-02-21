@@ -169,8 +169,6 @@ public class SelectImpl<T> implements Select<T> {
                 }
             }
         }
-
-
     }
 
     private StringBuilder buildSql(Parameters parameters) {

@@ -1,6 +1,7 @@
 package at.lemme.orm.fluent.test.relations;
 
 import at.lemme.orm.fluent.BaseDbTest;
+import at.lemme.orm.fluent.api.Conditions;
 import org.junit.Test;
 
 import java.util.ArrayList;

@@ -1,5 +1,6 @@
 package at.lemme.orm.fluent;
 
+import at.lemme.orm.fluent.api.Expressions;
 import at.lemme.orm.fluent.api.Order;
 
 import java.io.IOException;
@@ -57,6 +58,9 @@ public class Test {
         List<Test> x3 = new F(c).select(Test.class).where(empty()).orderBy("name", Order.ASC).fetch();
         List<Test> x4 = new F(c).select(Test.class).where(empty()).limit(5).fetch();
         List<Test> x5 = new F(c).select(Test.class).where(empty()).limit(0, 10).fetch();
+
+        Test y1 = new F(c).select(Expressions.column("name")).from(Test.class).mapResult((rs, rowNum) -> null);
+        List<Test> y2 = new F(c).select(Expressions.column("name")).mapResults((rs, rowNum) -> null);
 
 
         new F(c).delete(Test.class).execute();

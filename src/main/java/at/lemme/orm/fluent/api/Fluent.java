@@ -8,11 +8,13 @@ public interface Fluent {
 
     <T> Insert<T> insert(T... objects);
 
-    <T> Select<T> select(Class<?> T);
+    <T> Select<T> select(Class<T> T);
+
+    Project select(Expression... expressions);
 
     <T> Update<T> update(T... objects);
 
-    <T> Delete<T> delete(Class<?> T);
+    <T> Delete<T> delete(Class<T> T);
 
     <T> DeleteObject<T> deleteObject(T object);
 
