@@ -4,6 +4,8 @@ import at.lemme.orm.fluent.api.Insert;
 import at.lemme.orm.fluent.impl.metadata.Attribute;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
 import at.lemme.orm.fluent.impl.metadata.Relation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
  * Created by thomas on 22.01.17.
  */
 public class InsertImpl<T> implements Insert<T> {
+
+    private static final Logger log = LoggerFactory.getLogger(InsertImpl.class);
 
     private final Connection connection;
     private final List<T> objects;
@@ -64,7 +68,7 @@ public class InsertImpl<T> implements Insert<T> {
     private void addBatchValues(PreparedStatement stmt, T object) {
         try {
             addValuesToPreparedStatement(stmt, object);
-            System.out.println(stmt);
+            log.debug(stmt.toString());
             stmt.addBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);

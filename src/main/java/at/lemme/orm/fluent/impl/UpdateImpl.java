@@ -3,6 +3,8 @@ package at.lemme.orm.fluent.impl;
 import at.lemme.orm.fluent.api.Update;
 import at.lemme.orm.fluent.impl.metadata.Attribute;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
  * Created by thomas on 22.01.17.
  */
 public class UpdateImpl<T> implements Update<T> {
+
+    private static final Logger log = LoggerFactory.getLogger(UpdateImpl.class);
 
     private final List<T> objects;
 
@@ -57,7 +61,7 @@ public class UpdateImpl<T> implements Update<T> {
     private void addBatchValues(PreparedStatement stmt, T object, List<Attribute> allAttributesExceptId) {
         try {
             addValuesToPreparedStatement(stmt, object, allAttributesExceptId);
-            System.out.println(stmt);
+            log.debug(stmt.toString());
             stmt.addBatch();
         } catch (Exception e) {
             throw new RuntimeException(e);

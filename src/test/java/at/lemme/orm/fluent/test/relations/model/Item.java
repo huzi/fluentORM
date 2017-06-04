@@ -1,4 +1,4 @@
-package at.lemme.orm.fluent.test.relations;
+package at.lemme.orm.fluent.test.relations.model;
 
 import at.lemme.orm.fluent.api.annotation.ManyToOne;
 
@@ -53,5 +53,15 @@ public class Item {
 
     public void setTodoList(TodoList todoList) {
         this.todoList = todoList;
+    }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", todoList=" + (todoList == null ? null : todoList.getId()) +
+                '}';
     }
 }

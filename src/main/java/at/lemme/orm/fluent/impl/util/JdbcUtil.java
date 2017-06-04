@@ -1,5 +1,8 @@
 package at.lemme.orm.fluent.impl.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -9,16 +12,21 @@ import java.sql.SQLException;
  */
 public class JdbcUtil {
 
+    private static Logger log = LoggerFactory.getLogger(JdbcUtil.class);
+
     public static void printRow(ResultSet resultSet) throws SQLException {
         final ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
 
+
         StringBuilder sb = new StringBuilder();
         sb.append('|');
         for (int i = 1; i <= columnCount; i++) {
-            sb.append(resultSet.getString(i)).append('|');
+            String value = resultSet.getString(i);
+            value = String.format("%1$" + metaData.getColumnLabel(i).length() + "s", value);
+            sb.append(value).append('|');
         }
-        System.out.println(sb.toString());
+        log.debug(sb.toString());
     }
 
 
@@ -31,7 +39,7 @@ public class JdbcUtil {
         for (int i = 1; i <= columnCount; i++) {
             sb.append(metaData.getColumnLabel(i)).append('|');
         }
-        System.out.println(sb.toString());
+        log.debug(sb.toString());
     }
 
 }

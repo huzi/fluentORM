@@ -9,6 +9,8 @@ import at.lemme.orm.fluent.impl.metadata.Relation;
 import at.lemme.orm.fluent.impl.select.FetchRelation;
 import at.lemme.orm.fluent.impl.select.Limit;
 import at.lemme.orm.fluent.impl.select.OrderBy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -28,6 +30,7 @@ import static at.lemme.orm.fluent.impl.util.JdbcUtil.printRow;
  */
 public class SelectImpl<T> implements Select<T> {
 
+    private final Logger log = LoggerFactory.getLogger(SelectImpl.class);
 
     private final Connection connection;
     private final Class<?> entityClass;
@@ -91,11 +94,11 @@ public class SelectImpl<T> implements Select<T> {
     @Override
     public List<T> fetch() {
         Parameters parameters = new Parameters();
-        StringBuilder sql = buildSql(parameters);
+        String sql = buildSql(parameters);
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             parameters.apply(stmt);
-            System.out.println(stmt);
+            log.debug(stmt.toString());
             return executeAndFetch(stmt);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -108,9 +111,9 @@ public class SelectImpl<T> implements Select<T> {
         List<String> relationIdAliases = fetchRelations.stream()
                 .map(FetchRelation::idColumnAlias)
                 .collect(Collectors.toList());
-        Map<String, List<String>> fetchedIds = new HashMap<>();
-        fetchedIds.put(idAlias, new ArrayList<>());
-        relationIdAliases.forEach(alias -> fetchedIds.put(alias, new ArrayList<>()));
+        Map<String, Map<String, Object>> fetchedIds = new HashMap<>();
+        fetchedIds.put(idAlias, new HashMap<>());
+        relationIdAliases.forEach(alias -> fetchedIds.put(alias, new HashMap<>()));
 
         try (ResultSet resultSet = stmt.executeQuery()) {
             printColumns(resultSet);
@@ -121,59 +124,74 @@ public class SelectImpl<T> implements Select<T> {
         return resultList;
     }
 
-    private void fetchRow(ResultSet resultSet, List<T> resultList, Map<String, List<String>> fetchedIds) throws InstantiationException, IllegalAccessException, SQLException {
+    private void fetchRow(ResultSet resultSet, List<T> resultList, Map<String, Map<String, Object>> fetchedIds) throws InstantiationException, IllegalAccessException, SQLException {
 
 
         printRow(resultSet);
         // first, fetch the root object
         final T parent;
         final String rootId = resultSet.getString(idAlias);
-        if (!fetchedIds.get(idAlias).contains(rootId)) {
+        log.trace(" - first, fetch root object: "+ metadata.getEntityClass().getSimpleName());
+        if (!fetchedIds.get(idAlias).containsKey(rootId)) {
+            log.trace(" - root object fetched: " + rootId);
             parent = (T) metadata.getEntityClass().newInstance();
             for (Attribute attribute : metadata.columnAttributes()) {
                 attribute.setAttribute(parent, resultSet, alias);
             }
-            fetchedIds.get(idAlias).add(rootId);
+            fetchedIds.get(idAlias).put(rootId, parent);
             resultList.add(parent);
         } else {
+            log.trace(" - root object already fetched: " + rootId);
             parent = resultList.stream().filter(o -> metadata.id().getValue(o).toString().equals(rootId)).findFirst().get();
         }
 
         // then fetch related objects
+        log.trace(" - now fetch relations");
         for (FetchRelation relation : fetchRelations) {
+            log.trace(" - fetch relation " + relation.relation().referencedMetadata().getEntityClass().getSimpleName());
             final String relationIdValue = resultSet.getString(relation.idColumnAlias());
             if (relationIdValue == null) {
+                log.trace("   - relation id value is null in this row - skipping relation");
                 continue;
             }
-            System.out.println("relationIdValue:" + relationIdValue);
-            if (!fetchedIds.get(relation.idColumnAlias()).contains(relationIdValue)) {
+
+            Object child;
+            if (fetchedIds.get(relation.idColumnAlias()).containsKey(relationIdValue)) {
+                log.trace("   - relation ");
+                // Object already fetched before
+                if (OneToMany.equals(relation.type())) {
+                    continue;
+                }else{
+                    child = fetchedIds.get(relation.idColumnAlias()).get(relationIdValue);
+                }
+            } else {
                 // Fetch object
-                Object child = relation.relation().referencedMetadata().getEntityClass().newInstance();
+                child = relation.relation().referencedMetadata().getEntityClass().newInstance();
                 for (Attribute attribute : relation.relation().referencedMetadata().columnAttributes()) {
                     attribute.setAttribute(child, resultSet, relation.tableAlias());
                 }
-                System.out.println(child.toString());
-                fetchedIds.get(relation.idColumnAlias()).add(relationIdValue);
+                log.trace(child.toString());
+                fetchedIds.get(relation.idColumnAlias()).put(relationIdValue, child);
+            }
 
-                // Connect related Objects
-                if (OneToMany.equals(relation.type())) {
-                    final Attribute attribute = relation.relation().attribute();
-                    if (attribute.getValue(parent) == null) {
-                        attribute.setValue(parent, new ArrayList<>());
-                    }
-                    ((List) attribute.getValue(parent)).add(child);
-                    relation.relation().referencedMetadata().getAttribute(relation.relation().mappedBy()).setValue(child, parent);
-                } else if (ManyToOne.equals(relation.type())) {
-                    final Attribute attribute = relation.relation().attribute();
-                    attribute.setValue(parent, child);
+            // Connect related Objects
+            if (OneToMany.equals(relation.type())) {
+                final Attribute attribute = relation.relation().attribute();
+                if (attribute.getValue(parent) == null) {
+                    attribute.setValue(parent, new ArrayList<>());
                 }
+                ((List) attribute.getValue(parent)).add(child);
+                relation.relation().referencedMetadata().getAttribute(relation.relation().mappedBy()).setValue(child, parent);
+            } else if (ManyToOne.equals(relation.type())) {
+                final Attribute attribute = relation.relation().attribute();
+                attribute.setValue(parent, child);
             }
         }
 
 
     }
 
-    private StringBuilder buildSql(Parameters parameters) {
+    private String buildSql(Parameters parameters) {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append(attributeString);
 
@@ -184,7 +202,7 @@ public class SelectImpl<T> implements Select<T> {
         sql.append(" FROM ").append(metadata.tableName()).append(' ').append(alias);
 
         if (!fetchRelations.isEmpty()) {
-            fetchRelations.forEach(relation -> {
+            for (FetchRelation relation : fetchRelations) {
                 String joinAlias = relation.tableAlias();
                 Relation joinAttribute = relation.relation();
 
@@ -193,7 +211,7 @@ public class SelectImpl<T> implements Select<T> {
                 sql.append(alias).append('.').append(joinAttribute.column());
                 sql.append('=');
                 sql.append(joinAlias).append('.').append(joinAttribute.referencedColumn()).append(')');
-            });
+            }
         }
 
         sql.append(" WHERE ").append(condition.toSql(metadata, parameters));
@@ -204,6 +222,6 @@ public class SelectImpl<T> implements Select<T> {
             sql.append(" LIMIT ").append(limit.limit());
             sql.append(" OFFSET ").append(limit.offset());
         }
-        return sql;
+        return sql.toString();
     }
 }

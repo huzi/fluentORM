@@ -5,6 +5,8 @@ import at.lemme.orm.fluent.api.Delete;
 import at.lemme.orm.fluent.api.DeleteObject;
 import at.lemme.orm.fluent.api.DeleteObjects;
 import at.lemme.orm.fluent.impl.metadata.Metadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +15,8 @@ import java.sql.PreparedStatement;
  * Created by thomas on 22.01.17.
  */
 public class DeleteImpl<T> implements Delete<T>, DeleteObject<T>, DeleteObjects {
+
+    private static final Logger log = LoggerFactory.getLogger(DeleteImpl.class);
 
     private final Connection connection;
     private final Class<?> entityClass;
@@ -47,7 +51,7 @@ public class DeleteImpl<T> implements Delete<T>, DeleteObject<T>, DeleteObjects 
 
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             parameters.apply(stmt);
-            System.out.println(stmt);
+            log.debug(stmt.toString());
             stmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);

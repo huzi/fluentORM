@@ -1,4 +1,4 @@
-package at.lemme.orm.fluent.test.relations;
+package at.lemme.orm.fluent.test.relations.model;
 
 import at.lemme.orm.fluent.api.annotation.OneToMany;
 
@@ -13,6 +13,9 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer")
     private List<TodoList> lists;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Address> addresses;
 
     public Customer() {
     }

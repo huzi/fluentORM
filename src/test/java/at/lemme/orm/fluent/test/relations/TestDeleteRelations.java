@@ -2,6 +2,9 @@ package at.lemme.orm.fluent.test.relations;
 
 import at.lemme.orm.fluent.BaseDbTest;
 import at.lemme.orm.fluent.api.Conditions;
+import at.lemme.orm.fluent.test.relations.model.Customer;
+import at.lemme.orm.fluent.test.relations.model.Item;
+import at.lemme.orm.fluent.test.relations.model.TodoList;
 import org.junit.Test;
 
 import java.sql.SQLException;

@@ -1,7 +1,9 @@
 package at.lemme.orm.fluent.test.relations;
 
 import at.lemme.orm.fluent.BaseDbTest;
-import org.assertj.core.api.Assertions;
+import at.lemme.orm.fluent.test.relations.model.Customer;
+import at.lemme.orm.fluent.test.relations.model.Item;
+import at.lemme.orm.fluent.test.relations.model.TodoList;
 import org.junit.Test;
 
 import java.sql.ResultSet;

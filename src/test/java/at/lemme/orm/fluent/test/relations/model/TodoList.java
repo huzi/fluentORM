@@ -1,8 +1,9 @@
-package at.lemme.orm.fluent.test.relations;
+package at.lemme.orm.fluent.test.relations.model;
 
 import at.lemme.orm.fluent.api.annotation.Column;
 import at.lemme.orm.fluent.api.annotation.ManyToOne;
 import at.lemme.orm.fluent.api.annotation.OneToMany;
+import at.lemme.orm.fluent.test.relations.model.Item;
 
 import java.util.List;
 
